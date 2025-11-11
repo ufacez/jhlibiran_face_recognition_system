@@ -25,11 +25,15 @@ class Camera:
         """Initialize camera"""
         try:
             logger.info(f"Opening camera {self.camera_index}...")
-            self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_DSHOW)  # DirectShow for Windows
+            
+            # Use CAP_ANY (works best based on your test)
+            self.cap = cv2.VideoCapture(self.camera_index, cv2.CAP_ANY)
             
             if not self.cap.isOpened():
                 logger.error("Failed to open camera")
                 return False
+            
+            logger.info("Camera opened successfully")
             
             # Set properties
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
