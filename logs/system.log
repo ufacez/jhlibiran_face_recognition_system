@@ -1173,3 +1173,786 @@ AttributeError: module 'cv2' has no attribute 'FONT_HERSHEY_BOLD'
 2025-11-11 08:30:27,006 - utils.display - INFO - Display destroyed
 2025-11-11 08:30:27,011 - config.database - INFO - MySQL closed
 2025-11-11 08:30:27,011 - main - INFO - Shutdown complete
+2025-11-15 20:36:27,725 - __main__ - INFO - Creating system instance...
+2025-11-15 20:36:27,742 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-15 20:36:27,743 - __main__ - INFO - Initializing...
+2025-11-15 20:36:27,743 - __main__ - INFO - Initializing components...
+2025-11-15 20:36:27,743 - __main__ - INFO - Connecting to databases...
+2025-11-15 20:36:27,797 - config.database - INFO - SQLite initialized
+2025-11-15 20:36:27,899 - config.database - INFO - MySQL connected
+2025-11-15 20:36:27,899 - __main__ - INFO - MySQL connected
+2025-11-15 20:36:27,900 - __main__ - INFO - SQLite database ready
+2025-11-15 20:36:27,900 - __main__ - INFO - Initializing core components...
+2025-11-15 20:36:27,900 - __main__ - INFO - Core components initialized
+2025-11-15 20:36:27,900 - __main__ - INFO - Initializing camera...
+2025-11-15 20:36:27,900 - utils.camera - INFO - Opening camera 0...
+2025-11-15 20:36:28,280 - utils.camera - ERROR - Failed to open camera
+2025-11-15 20:36:28,281 - __main__ - ERROR - Camera initialization failed
+2025-11-15 20:36:28,281 - __main__ - ERROR - Initialization failed!
+2025-11-15 20:36:41,641 - __main__ - INFO - Creating system instance...
+2025-11-15 20:36:41,642 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-15 20:36:41,642 - __main__ - INFO - Initializing...
+2025-11-15 20:36:41,642 - __main__ - INFO - Initializing components...
+2025-11-15 20:36:41,642 - __main__ - INFO - Connecting to databases...
+2025-11-15 20:36:41,644 - config.database - INFO - SQLite initialized
+2025-11-15 20:36:41,683 - config.database - INFO - MySQL connected
+2025-11-15 20:36:41,683 - __main__ - INFO - MySQL connected
+2025-11-15 20:36:41,684 - __main__ - INFO - SQLite database ready
+2025-11-15 20:36:41,684 - __main__ - INFO - Initializing core components...
+2025-11-15 20:36:41,684 - __main__ - INFO - Core components initialized
+2025-11-15 20:36:41,684 - __main__ - INFO - Initializing camera...
+2025-11-15 20:36:41,684 - utils.camera - INFO - Opening camera 0...
+2025-11-15 20:36:41,781 - utils.camera - ERROR - Failed to open camera
+2025-11-15 20:36:41,782 - __main__ - ERROR - Camera initialization failed
+2025-11-15 20:36:41,782 - __main__ - ERROR - Initialization failed!
+2025-11-15 20:36:58,729 - __main__ - INFO - Creating system instance...
+2025-11-15 20:36:58,729 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-15 20:36:58,729 - __main__ - INFO - Initializing...
+2025-11-15 20:36:58,730 - __main__ - INFO - Initializing components...
+2025-11-15 20:36:58,730 - __main__ - INFO - Connecting to databases...
+2025-11-15 20:36:58,731 - config.database - INFO - SQLite initialized
+2025-11-15 20:36:58,768 - config.database - INFO - MySQL connected
+2025-11-15 20:36:58,769 - __main__ - INFO - MySQL connected
+2025-11-15 20:36:58,769 - __main__ - INFO - SQLite database ready
+2025-11-15 20:36:58,769 - __main__ - INFO - Initializing core components...
+2025-11-15 20:36:58,769 - __main__ - INFO - Core components initialized
+2025-11-15 20:36:58,769 - __main__ - INFO - Initializing camera...
+2025-11-15 20:36:58,770 - utils.camera - INFO - Opening camera 0...
+2025-11-15 20:37:02,482 - utils.camera - INFO - Camera opened successfully
+2025-11-15 20:37:12,079 - utils.camera - INFO - Camera initialized
+2025-11-15 20:37:12,085 - utils.camera - INFO - Resolution: 640x480
+2025-11-15 20:37:12,086 - utils.camera - INFO - FPS: 30
+2025-11-15 20:37:12,093 - utils.camera - INFO - FPS set to 30
+2025-11-15 20:37:12,105 - utils.camera - INFO - Resolution set to 640x480
+2025-11-15 20:37:12,105 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-15 20:37:12,106 - __main__ - INFO - Initializing GPIO...
+2025-11-15 20:37:12,106 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-15 20:37:12,106 - __main__ - INFO - GPIO initialized
+2025-11-15 20:37:12,110 - __main__ - INFO - Initializing display...
+2025-11-15 20:37:12,170 - utils.display - INFO - Display window created (1280x720)
+2025-11-15 20:37:12,171 - __main__ - INFO - Display initialized (windowed)
+2025-11-15 20:37:12,171 - __main__ - INFO - Loading face encodings...
+2025-11-15 20:37:12,172 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-15 20:37:12,306 - config.database - INFO - Cached 2 encodings
+2025-11-15 20:37:12,307 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-15 20:37:12,307 - __main__ - INFO - Loaded 2 face encodings
+2025-11-15 20:37:12,307 - __main__ - INFO - ============================================================
+2025-11-15 20:37:12,308 - __main__ - INFO - System ready!
+2025-11-15 20:37:12,308 - __main__ - INFO - ============================================================
+2025-11-15 20:37:12,308 - __main__ - INFO - System ready!
+2025-11-15 20:37:12,310 - __main__ - INFO - Starting attendance system...
+2025-11-15 20:37:12,311 - __main__ - INFO - Sync worker started
+2025-11-15 20:37:16,708 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:21,925 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:26,295 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:30,149 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:34,035 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:37,983 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:40,925 - __main__ - INFO - TIME-OUT MODE
+2025-11-15 20:37:42,031 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:46,046 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:37:49,985 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:38:17,112 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:38:21,439 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:38:52,856 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:39:02,782 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:39:07,201 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-15 20:39:11,209 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-15 20:39:13,375 - __main__ - INFO - TIME-OUT MODE
+2025-11-15 20:39:15,229 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-15 20:39:19,144 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-15 20:39:23,117 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-15 20:39:24,072 - __main__ - INFO - Quit key pressed
+2025-11-15 20:39:24,073 - __main__ - INFO - Shutting down...
+2025-11-15 20:39:27,079 - utils.camera - INFO - Releasing camera...
+2025-11-15 20:39:27,382 - utils.camera - INFO - Camera released
+2025-11-15 20:39:27,409 - utils.display - INFO - Display destroyed
+2025-11-15 20:39:27,414 - config.database - INFO - MySQL closed
+2025-11-15 20:39:27,416 - __main__ - INFO - Shutdown complete
+2025-11-18 17:02:56,834 - __main__ - INFO - Creating system instance...
+2025-11-18 17:02:56,834 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-18 17:02:56,834 - __main__ - INFO - Initializing...
+2025-11-18 17:02:56,834 - __main__ - INFO - Initializing components...
+2025-11-18 17:02:56,834 - __main__ - INFO - Connecting to databases...
+2025-11-18 17:02:56,846 - config.database - INFO - SQLite initialized
+2025-11-18 17:02:56,991 - config.database - INFO - MySQL connected
+2025-11-18 17:02:56,993 - __main__ - INFO - MySQL connected
+2025-11-18 17:02:56,994 - __main__ - INFO - SQLite database ready
+2025-11-18 17:02:56,995 - __main__ - INFO - Initializing core components...
+2025-11-18 17:02:56,996 - __main__ - INFO - Core components initialized
+2025-11-18 17:02:56,996 - __main__ - INFO - Initializing camera...
+2025-11-18 17:02:56,997 - utils.camera - INFO - Opening camera 0...
+2025-11-18 17:03:00,978 - utils.camera - INFO - Camera opened successfully
+2025-11-18 17:03:12,579 - utils.camera - INFO - Camera initialized
+2025-11-18 17:03:12,585 - utils.camera - INFO - Resolution: 640x480
+2025-11-18 17:03:12,587 - utils.camera - INFO - FPS: 30
+2025-11-18 17:03:12,616 - utils.camera - INFO - FPS set to 30
+2025-11-18 17:03:12,630 - utils.camera - INFO - Resolution set to 640x480
+2025-11-18 17:03:12,631 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-18 17:03:12,631 - __main__ - INFO - Initializing GPIO...
+2025-11-18 17:03:12,631 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-18 17:03:12,632 - __main__ - INFO - GPIO initialized
+2025-11-18 17:03:12,632 - __main__ - INFO - Initializing display...
+2025-11-18 17:03:12,700 - utils.display - INFO - Display window created (1280x720)
+2025-11-18 17:03:12,701 - __main__ - INFO - Display initialized (windowed)
+2025-11-18 17:03:12,701 - __main__ - INFO - Loading face encodings...
+2025-11-18 17:03:12,701 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-18 17:03:12,988 - config.database - INFO - Cached 2 encodings
+2025-11-18 17:03:12,989 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-18 17:03:12,990 - __main__ - INFO - Loaded 2 face encodings
+2025-11-18 17:03:12,990 - __main__ - INFO - ============================================================
+2025-11-18 17:03:12,991 - __main__ - INFO - System ready!
+2025-11-18 17:03:12,991 - __main__ - INFO - ============================================================
+2025-11-18 17:03:12,992 - __main__ - INFO - System ready!
+2025-11-18 17:03:12,994 - __main__ - INFO - Starting attendance system...
+2025-11-18 17:03:12,995 - __main__ - INFO - Sync worker started
+2025-11-18 17:03:16,100 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:20,535 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:24,100 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:27,789 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:31,559 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:35,315 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:39,043 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:03:48,385 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:03:52,349 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:03:56,222 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:04:00,133 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:04:03,928 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:04:07,841 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:04:11,397 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:04:12,292 - __main__ - INFO - Quit key pressed
+2025-11-18 17:04:12,293 - __main__ - INFO - Shutting down...
+2025-11-18 17:04:15,313 - utils.camera - INFO - Releasing camera...
+2025-11-18 17:04:15,628 - utils.camera - INFO - Camera released
+2025-11-18 17:04:15,652 - utils.display - INFO - Display destroyed
+2025-11-18 17:04:15,655 - config.database - INFO - MySQL closed
+2025-11-18 17:04:15,657 - __main__ - INFO - Shutdown complete
+2025-11-18 17:28:07,855 - __main__ - INFO - Creating system instance...
+2025-11-18 17:28:07,855 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-18 17:28:07,855 - __main__ - INFO - Initializing...
+2025-11-18 17:28:07,856 - __main__ - INFO - Initializing components...
+2025-11-18 17:28:07,856 - __main__ - INFO - Connecting to databases...
+2025-11-18 17:28:07,858 - config.database - INFO - SQLite initialized
+2025-11-18 17:28:07,965 - config.database - INFO - MySQL connected
+2025-11-18 17:28:07,965 - __main__ - INFO - MySQL connected
+2025-11-18 17:28:07,966 - __main__ - INFO - SQLite database ready
+2025-11-18 17:28:07,966 - __main__ - INFO - Initializing core components...
+2025-11-18 17:28:07,966 - __main__ - INFO - Core components initialized
+2025-11-18 17:28:07,966 - __main__ - INFO - Initializing camera...
+2025-11-18 17:28:07,967 - utils.camera - INFO - Opening camera 0...
+2025-11-18 17:28:13,141 - utils.camera - INFO - Camera opened successfully
+2025-11-18 17:28:23,568 - utils.camera - INFO - Camera initialized
+2025-11-18 17:28:23,569 - utils.camera - INFO - Resolution: 640x480
+2025-11-18 17:28:23,571 - utils.camera - INFO - FPS: 30
+2025-11-18 17:28:23,583 - utils.camera - INFO - FPS set to 30
+2025-11-18 17:28:23,609 - utils.camera - INFO - Resolution set to 640x480
+2025-11-18 17:28:23,611 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-18 17:28:23,611 - __main__ - INFO - Initializing GPIO...
+2025-11-18 17:28:23,612 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-18 17:28:23,612 - __main__ - INFO - GPIO initialized
+2025-11-18 17:28:23,612 - __main__ - INFO - Initializing display...
+2025-11-18 17:28:23,650 - utils.display - INFO - Display window created (1280x720)
+2025-11-18 17:28:23,650 - __main__ - INFO - Display initialized (windowed)
+2025-11-18 17:28:23,650 - __main__ - INFO - Loading face encodings...
+2025-11-18 17:28:23,651 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-18 17:28:23,767 - config.database - INFO - Cached 2 encodings
+2025-11-18 17:28:23,767 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-18 17:28:23,768 - __main__ - INFO - Loaded 2 face encodings
+2025-11-18 17:28:23,768 - __main__ - INFO - ============================================================
+2025-11-18 17:28:23,769 - __main__ - INFO - System ready!
+2025-11-18 17:28:23,771 - __main__ - INFO - ============================================================
+2025-11-18 17:28:23,771 - __main__ - INFO - System ready!
+2025-11-18 17:28:23,777 - __main__ - INFO - Starting attendance system...
+2025-11-18 17:28:23,781 - __main__ - INFO - Sync worker started
+2025-11-18 17:28:24,418 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:28:31,966 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:28:37,914 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:28:43,348 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:28:54,127 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:28:57,821 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:29:01,562 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:29:05,354 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:29:05,477 - __main__ - INFO - TIME-OUT MODE
+2025-11-18 17:29:09,239 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:29:13,261 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:29:17,043 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:29:29,284 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:29:36,252 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-18 17:29:40,028 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:29:42,845 - __main__ - INFO - Quit key pressed
+2025-11-18 17:29:42,846 - __main__ - INFO - Shutting down...
+2025-11-18 17:29:45,855 - utils.camera - INFO - Releasing camera...
+2025-11-18 17:29:46,138 - utils.camera - INFO - Camera released
+2025-11-18 17:29:46,168 - utils.display - INFO - Display destroyed
+2025-11-18 17:29:46,179 - config.database - INFO - MySQL closed
+2025-11-18 17:29:46,187 - __main__ - INFO - Shutdown complete
+2025-11-18 17:36:58,249 - __main__ - INFO - Creating system instance...
+2025-11-18 17:36:58,249 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-18 17:36:58,249 - __main__ - INFO - Initializing...
+2025-11-18 17:36:58,250 - __main__ - INFO - Initializing components...
+2025-11-18 17:36:58,250 - __main__ - INFO - Connecting to databases...
+2025-11-18 17:36:58,252 - config.database - INFO - SQLite initialized
+2025-11-18 17:36:58,375 - config.database - INFO - MySQL connected
+2025-11-18 17:36:58,375 - __main__ - INFO - MySQL connected
+2025-11-18 17:36:58,375 - __main__ - INFO - SQLite database ready
+2025-11-18 17:36:58,375 - __main__ - INFO - Initializing core components...
+2025-11-18 17:36:58,376 - __main__ - INFO - Core components initialized
+2025-11-18 17:36:58,376 - __main__ - INFO - Initializing camera...
+2025-11-18 17:36:58,376 - utils.camera - INFO - Opening camera 0...
+2025-11-18 17:37:02,838 - utils.camera - INFO - Camera opened successfully
+2025-11-18 17:37:12,780 - utils.camera - INFO - Camera initialized
+2025-11-18 17:37:12,780 - utils.camera - INFO - Resolution: 640x480
+2025-11-18 17:37:12,781 - utils.camera - INFO - FPS: 30
+2025-11-18 17:37:12,794 - utils.camera - INFO - FPS set to 30
+2025-11-18 17:37:12,806 - utils.camera - INFO - Resolution set to 640x480
+2025-11-18 17:37:12,806 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-18 17:37:12,807 - __main__ - INFO - Initializing GPIO...
+2025-11-18 17:37:12,807 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-18 17:37:12,808 - __main__ - INFO - GPIO initialized
+2025-11-18 17:37:12,808 - __main__ - INFO - Initializing display...
+2025-11-18 17:37:12,840 - utils.display - INFO - Display window created (1280x720)
+2025-11-18 17:37:12,842 - __main__ - INFO - Display initialized (windowed)
+2025-11-18 17:37:12,842 - __main__ - INFO - Loading face encodings...
+2025-11-18 17:37:12,842 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-18 17:37:12,953 - config.database - INFO - Cached 2 encodings
+2025-11-18 17:37:12,954 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-18 17:37:12,954 - __main__ - INFO - Loaded 2 face encodings
+2025-11-18 17:37:12,955 - __main__ - INFO - ============================================================
+2025-11-18 17:37:12,955 - __main__ - INFO - System ready!
+2025-11-18 17:37:12,962 - __main__ - INFO - ============================================================
+2025-11-18 17:37:12,964 - __main__ - INFO - System ready!
+2025-11-18 17:37:12,976 - __main__ - INFO - Starting attendance system...
+2025-11-18 17:37:12,980 - __main__ - INFO - Sync worker started
+2025-11-18 17:37:57,408 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:38:25,774 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:38:45,854 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-18 17:40:19,704 - __main__ - INFO - Quit key pressed
+2025-11-18 17:40:19,705 - __main__ - INFO - Shutting down...
+2025-11-18 17:40:22,708 - utils.camera - INFO - Releasing camera...
+2025-11-18 17:40:23,006 - utils.camera - INFO - Camera released
+2025-11-18 17:40:23,062 - utils.display - INFO - Display destroyed
+2025-11-18 17:40:23,121 - config.database - INFO - MySQL closed
+2025-11-18 17:40:23,177 - __main__ - INFO - Shutdown complete
+2025-11-19 06:09:58,110 - __main__ - INFO - Creating system instance...
+2025-11-19 06:09:58,110 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-19 06:09:58,110 - __main__ - INFO - Initializing...
+2025-11-19 06:09:58,111 - __main__ - INFO - Initializing components...
+2025-11-19 06:09:58,111 - __main__ - INFO - Connecting to databases...
+2025-11-19 06:09:58,113 - config.database - INFO - SQLite initialized
+2025-11-19 06:09:58,196 - config.database - INFO - MySQL connected
+2025-11-19 06:09:58,196 - __main__ - INFO - MySQL connected
+2025-11-19 06:09:58,199 - __main__ - INFO - SQLite database ready
+2025-11-19 06:09:58,199 - __main__ - INFO - Initializing core components...
+2025-11-19 06:09:58,199 - __main__ - INFO - Core components initialized
+2025-11-19 06:09:58,200 - __main__ - INFO - Initializing camera...
+2025-11-19 06:09:58,200 - utils.camera - INFO - Opening camera 0...
+2025-11-19 06:10:02,213 - utils.camera - INFO - Camera opened successfully
+2025-11-19 06:10:12,342 - utils.camera - INFO - Camera initialized
+2025-11-19 06:10:12,343 - utils.camera - INFO - Resolution: 640x480
+2025-11-19 06:10:12,343 - utils.camera - INFO - FPS: 30
+2025-11-19 06:10:12,352 - utils.camera - INFO - FPS set to 30
+2025-11-19 06:10:12,371 - utils.camera - INFO - Resolution set to 640x480
+2025-11-19 06:10:12,372 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-19 06:10:12,372 - __main__ - INFO - Initializing GPIO...
+2025-11-19 06:10:12,372 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-19 06:10:12,373 - __main__ - INFO - GPIO initialized
+2025-11-19 06:10:12,373 - __main__ - INFO - Initializing display...
+2025-11-19 06:10:12,447 - utils.display - INFO - Display window created (1280x720)
+2025-11-19 06:10:12,447 - __main__ - INFO - Display initialized (windowed)
+2025-11-19 06:10:12,448 - __main__ - INFO - Loading face encodings...
+2025-11-19 06:10:12,448 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-19 06:10:12,551 - config.database - INFO - Cached 2 encodings
+2025-11-19 06:10:12,551 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-19 06:10:12,552 - __main__ - INFO - Loaded 2 face encodings
+2025-11-19 06:10:12,552 - __main__ - INFO - ============================================================
+2025-11-19 06:10:12,552 - __main__ - INFO - System ready!
+2025-11-19 06:10:12,552 - __main__ - INFO - ============================================================
+2025-11-19 06:10:12,553 - __main__ - INFO - System ready!
+2025-11-19 06:10:12,560 - __main__ - INFO - Starting attendance system...
+2025-11-19 06:10:12,560 - __main__ - INFO - Sync worker started
+2025-11-19 06:10:13,777 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:10:18,751 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:10:24,285 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 06:10:41,182 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 06:10:44,835 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 06:10:48,502 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 06:10:52,173 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 06:10:55,880 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:11:02,902 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:11:19,176 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:11:24,795 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 06:11:25,933 - __main__ - INFO - Quit key pressed
+2025-11-19 06:11:25,934 - __main__ - INFO - Shutting down...
+2025-11-19 06:11:28,943 - utils.camera - INFO - Releasing camera...
+2025-11-19 06:11:29,278 - utils.camera - INFO - Camera released
+2025-11-19 06:11:29,286 - utils.display - INFO - Display destroyed
+2025-11-19 06:11:29,313 - config.database - INFO - MySQL closed
+2025-11-19 06:11:29,314 - __main__ - INFO - Shutdown complete
+2025-11-19 18:11:51,193 - __main__ - INFO - Creating system instance...
+2025-11-19 18:11:51,194 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-19 18:11:51,194 - __main__ - INFO - Initializing...
+2025-11-19 18:11:51,194 - __main__ - INFO - Initializing components...
+2025-11-19 18:11:51,194 - __main__ - INFO - Connecting to databases...
+2025-11-19 18:11:51,196 - config.database - INFO - SQLite initialized
+2025-11-19 18:11:51,406 - config.database - INFO - MySQL connected
+2025-11-19 18:11:51,406 - __main__ - INFO - MySQL connected
+2025-11-19 18:11:51,406 - __main__ - INFO - SQLite database ready
+2025-11-19 18:11:51,406 - __main__ - INFO - Initializing core components...
+2025-11-19 18:11:51,407 - __main__ - INFO - Core components initialized
+2025-11-19 18:11:51,407 - __main__ - INFO - Initializing camera...
+2025-11-19 18:11:51,407 - utils.camera - INFO - Opening camera 0...
+2025-11-19 18:11:56,265 - utils.camera - INFO - Camera opened successfully
+2025-11-19 18:12:07,469 - utils.camera - INFO - Camera initialized
+2025-11-19 18:12:07,473 - utils.camera - INFO - Resolution: 640x480
+2025-11-19 18:12:07,475 - utils.camera - INFO - FPS: 30
+2025-11-19 18:12:07,488 - utils.camera - INFO - FPS set to 30
+2025-11-19 18:12:07,507 - utils.camera - INFO - Resolution set to 640x480
+2025-11-19 18:12:07,508 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-19 18:12:07,509 - __main__ - INFO - Initializing GPIO...
+2025-11-19 18:12:07,509 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-19 18:12:07,509 - __main__ - INFO - GPIO initialized
+2025-11-19 18:12:07,510 - __main__ - INFO - Initializing display...
+2025-11-19 18:12:07,558 - utils.display - INFO - Display window created (1280x720)
+2025-11-19 18:12:07,558 - __main__ - INFO - Display initialized (windowed)
+2025-11-19 18:12:07,559 - __main__ - INFO - Loading face encodings...
+2025-11-19 18:12:07,559 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-19 18:12:07,653 - config.database - INFO - Cached 2 encodings
+2025-11-19 18:12:07,654 - models.face_recognizer - INFO - Loaded 2 encodings
+2025-11-19 18:12:07,655 - __main__ - INFO - Loaded 2 face encodings
+2025-11-19 18:12:07,656 - __main__ - INFO - ============================================================
+2025-11-19 18:12:07,657 - __main__ - INFO - System ready!
+2025-11-19 18:12:07,658 - __main__ - INFO - ============================================================
+2025-11-19 18:12:07,659 - __main__ - INFO - System ready!
+2025-11-19 18:12:07,667 - __main__ - INFO - Starting attendance system...
+2025-11-19 18:12:07,687 - __main__ - INFO - Sync worker started
+2025-11-19 18:12:30,318 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:12:41,196 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:12:50,760 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:12:54,726 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:13:00,891 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:13:04,577 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:13:08,435 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:13:13,127 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:13:17,516 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:13:36,817 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:13:44,384 - __main__ - INFO - TIME-OUT MODE
+2025-11-19 18:13:54,742 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:14:33,734 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:14:33,740 - __main__ - INFO - TIME-OUT MODE
+2025-11-19 18:14:38,496 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:14:42,457 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:14:46,350 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:14:54,442 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:14:58,546 - __main__ - INFO - Recognized: Test Worker (ID: 4)
+2025-11-19 18:15:06,948 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-19 18:15:06,955 - __main__ - INFO - Quit key pressed
+2025-11-19 18:15:06,955 - __main__ - INFO - Shutting down...
+2025-11-19 18:15:09,961 - utils.camera - INFO - Releasing camera...
+2025-11-19 18:15:10,271 - utils.camera - INFO - Camera released
+2025-11-19 18:15:10,287 - utils.display - INFO - Display destroyed
+2025-11-19 18:15:10,288 - config.database - INFO - MySQL closed
+2025-11-19 18:15:10,290 - __main__ - INFO - Shutdown complete
+2025-11-28 17:10:54,815 - __main__ - INFO - Creating system instance...
+2025-11-28 17:10:54,830 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-28 17:10:54,830 - __main__ - INFO - Initializing...
+2025-11-28 17:10:54,830 - __main__ - INFO - Initializing components...
+2025-11-28 17:10:54,831 - __main__ - INFO - Connecting to databases...
+2025-11-28 17:10:54,843 - config.database - INFO - SQLite initialized
+2025-11-28 17:10:54,979 - config.database - INFO - MySQL connected
+2025-11-28 17:10:54,980 - __main__ - INFO - MySQL connected
+2025-11-28 17:10:54,980 - __main__ - INFO - SQLite database ready
+2025-11-28 17:10:54,980 - __main__ - INFO - Initializing core components...
+2025-11-28 17:10:54,980 - __main__ - INFO - Core components initialized
+2025-11-28 17:10:54,980 - __main__ - INFO - Initializing camera...
+2025-11-28 17:10:54,981 - utils.camera - INFO - Opening camera 0...
+2025-11-28 17:11:01,292 - utils.camera - INFO - Camera opened successfully
+2025-11-28 17:11:13,351 - utils.camera - INFO - Camera initialized
+2025-11-28 17:11:13,352 - utils.camera - INFO - Resolution: 640x480
+2025-11-28 17:11:13,352 - utils.camera - INFO - FPS: 30
+2025-11-28 17:11:13,368 - utils.camera - INFO - FPS set to 30
+2025-11-28 17:11:13,397 - utils.camera - INFO - Resolution set to 640x480
+2025-11-28 17:11:13,397 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-28 17:11:13,397 - __main__ - INFO - Initializing GPIO...
+2025-11-28 17:11:13,398 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-28 17:11:13,398 - __main__ - INFO - GPIO initialized
+2025-11-28 17:11:13,399 - __main__ - INFO - Initializing display...
+2025-11-28 17:11:13,530 - utils.display - INFO - Display window created (1280x720)
+2025-11-28 17:11:13,531 - __main__ - INFO - Display initialized (windowed)
+2025-11-28 17:11:13,531 - __main__ - INFO - Loading face encodings...
+2025-11-28 17:11:13,531 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-28 17:11:13,566 - models.face_recognizer - INFO - Loaded 0 encodings
+2025-11-28 17:11:13,576 - __main__ - WARNING - No face encodings loaded
+2025-11-28 17:11:13,577 - __main__ - INFO - ============================================================
+2025-11-28 17:11:13,577 - __main__ - INFO - System ready!
+2025-11-28 17:11:13,577 - __main__ - INFO - ============================================================
+2025-11-28 17:11:13,577 - __main__ - INFO - System ready!
+2025-11-28 17:11:13,579 - __main__ - INFO - Starting attendance system...
+2025-11-28 17:11:13,589 - __main__ - INFO - Sync worker started
+2025-11-28 17:19:00,004 - main - INFO - Creating system instance...
+2025-11-28 17:19:00,004 - main - INFO - Initializing TrackSite Attendance System...
+2025-11-28 17:19:00,005 - main - INFO - Initializing...
+2025-11-28 17:19:00,005 - main - INFO - Initializing components...
+2025-11-28 17:19:00,005 - main - INFO - Connecting to databases...
+2025-11-28 17:19:00,007 - config.database - INFO - SQLite initialized
+2025-11-28 17:19:00,145 - config.database - INFO - MySQL connected
+2025-11-28 17:19:00,146 - main - INFO - MySQL connected
+2025-11-28 17:19:00,146 - main - INFO - SQLite database ready
+2025-11-28 17:19:00,146 - main - INFO - Initializing core components...
+2025-11-28 17:19:00,146 - main - INFO - Core components initialized
+2025-11-28 17:19:00,146 - main - INFO - Initializing camera...
+2025-11-28 17:19:00,147 - utils.camera - INFO - Opening camera 0...
+2025-11-28 17:19:04,180 - utils.camera - INFO - Camera opened successfully
+2025-11-28 17:19:15,036 - utils.camera - INFO - Camera initialized
+2025-11-28 17:19:15,038 - utils.camera - INFO - Resolution: 640x480
+2025-11-28 17:19:15,038 - utils.camera - INFO - FPS: 30
+2025-11-28 17:19:15,067 - utils.camera - INFO - FPS set to 30
+2025-11-28 17:19:15,101 - utils.camera - INFO - Resolution set to 640x480
+2025-11-28 17:19:15,101 - main - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-28 17:19:15,103 - main - INFO - Initializing GPIO...
+2025-11-28 17:19:15,103 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-28 17:19:15,104 - main - INFO - GPIO initialized
+2025-11-28 17:19:15,104 - main - INFO - Initializing display...
+2025-11-28 17:19:15,189 - utils.display - INFO - Display window created (1280x720)
+2025-11-28 17:19:15,189 - main - INFO - Display initialized (windowed)
+2025-11-28 17:19:15,190 - main - INFO - Loading face encodings...
+2025-11-28 17:19:15,191 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-28 17:19:15,258 - config.database - INFO - Cached 1 encodings
+2025-11-28 17:19:15,259 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-11-28 17:19:15,260 - main - INFO - Loaded 1 face encodings
+2025-11-28 17:19:15,262 - main - INFO - ============================================================
+2025-11-28 17:19:15,263 - main - INFO - System ready!
+2025-11-28 17:19:15,263 - main - INFO - ============================================================
+2025-11-28 17:19:15,264 - main - INFO - System ready!
+2025-11-28 17:19:15,267 - main - INFO - Starting attendance system...
+2025-11-28 17:19:15,269 - main - INFO - Sync worker started
+2025-11-28 17:19:23,070 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:26,885 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:30,612 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:34,429 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:38,116 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:41,849 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:45,602 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:49,550 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:53,232 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:19:57,096 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:00,985 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:04,705 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:08,586 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:12,299 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:16,115 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:19,940 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:23,698 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:32,823 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:37,689 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:41,295 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-28 17:20:44,993 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:20:43,207 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:20:43,249 - config.database - ERROR - Fetch failed: MySQL Connection not available
+2025-11-29 17:20:43,262 - config.database - ERROR - Query failed: MySQL Connection not available
+2025-11-29 17:20:46,841 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:20:50,868 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:20:55,183 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:20:58,768 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:02,359 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:06,359 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:10,186 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:14,002 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:14,084 - config.database - INFO - Buffered attendance for worker 1
+2025-11-29 17:21:17,933 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:21,651 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:25,258 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:28,908 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:35,623 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:39,248 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:42,872 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:46,766 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:21:46,848 - config.database - INFO - Buffered attendance for worker 1
+2025-11-29 17:22:13,351 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:17,137 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:17,273 - config.database - INFO - Buffered attendance for worker 1
+2025-11-29 17:22:21,232 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:25,038 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:28,632 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:32,241 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:35,847 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:22:39,440 - main - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:31:59,760 - __main__ - INFO - Creating system instance...
+2025-11-29 17:31:59,775 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-29 17:31:59,776 - __main__ - INFO - Initializing...
+2025-11-29 17:31:59,776 - __main__ - INFO - Initializing components...
+2025-11-29 17:31:59,776 - __main__ - INFO - Connecting to databases...
+2025-11-29 17:31:59,778 - config.database - INFO - SQLite initialized
+2025-11-29 17:31:59,904 - config.database - INFO - MySQL connected
+2025-11-29 17:31:59,904 - __main__ - INFO - MySQL connected
+2025-11-29 17:31:59,905 - __main__ - INFO - SQLite database ready
+2025-11-29 17:31:59,905 - __main__ - INFO - Initializing core components...
+2025-11-29 17:31:59,905 - __main__ - INFO - Core components initialized
+2025-11-29 17:31:59,905 - __main__ - INFO - Initializing camera...
+2025-11-29 17:31:59,906 - utils.camera - INFO - Opening camera 0...
+2025-11-29 17:32:04,094 - utils.camera - INFO - Camera opened successfully
+2025-11-29 17:32:16,083 - utils.camera - INFO - Camera initialized
+2025-11-29 17:32:16,084 - utils.camera - INFO - Resolution: 640x480
+2025-11-29 17:32:16,084 - utils.camera - INFO - FPS: 30
+2025-11-29 17:32:16,098 - utils.camera - INFO - FPS set to 30
+2025-11-29 17:32:16,124 - utils.camera - INFO - Resolution set to 640x480
+2025-11-29 17:32:16,125 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-29 17:32:16,128 - __main__ - INFO - Initializing GPIO...
+2025-11-29 17:32:16,128 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-29 17:32:16,128 - __main__ - INFO - GPIO initialized
+2025-11-29 17:32:16,128 - __main__ - INFO - Initializing display...
+2025-11-29 17:32:16,226 - utils.display - INFO - Display window created (1280x720)
+2025-11-29 17:32:16,227 - __main__ - INFO - Display initialized (windowed)
+2025-11-29 17:32:16,227 - __main__ - INFO - Loading face encodings...
+2025-11-29 17:32:16,228 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-29 17:32:16,337 - config.database - INFO - Cached 1 encodings
+2025-11-29 17:32:16,338 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-11-29 17:32:16,345 - __main__ - INFO - Loaded 1 face encodings
+2025-11-29 17:32:16,357 - __main__ - INFO - ============================================================
+2025-11-29 17:32:16,359 - __main__ - INFO - System ready!
+2025-11-29 17:32:16,361 - __main__ - INFO - ============================================================
+2025-11-29 17:32:16,368 - __main__ - INFO - System ready!
+2025-11-29 17:32:16,396 - __main__ - INFO - Starting attendance system...
+2025-11-29 17:32:16,415 - __main__ - INFO - Sync worker started
+2025-11-29 17:32:17,215 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:32:21,483 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-29 17:32:25,176 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:26,511 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:26,629 - config.database - ERROR - Fetch failed: MySQL Connection not available
+2025-11-30 17:32:26,683 - config.database - ERROR - Query failed: MySQL Connection not available
+2025-11-30 17:32:30,571 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:34,435 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:41,336 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:46,147 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:49,801 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:53,463 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:57,173 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:32:57,264 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:33:00,944 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:04,617 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:08,252 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:11,966 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:15,616 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:26,990 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:30,749 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:30,829 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:33:34,505 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:38,506 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:42,276 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:46,220 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:50,187 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:54,118 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:33:58,942 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:02,678 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:02,762 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:34:06,683 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:10,366 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:18,520 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:23,400 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:27,031 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:50,259 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:34:50,340 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:35:03,578 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:07,192 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:10,813 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:15,811 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:19,479 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:29,578 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:29,688 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:35:33,354 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:37,051 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:40,761 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:49,482 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:53,112 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:35:56,767 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:00,387 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:00,503 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:36:04,191 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:07,841 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:12,107 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:25,572 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:29,232 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:32,835 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:33,011 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:36:36,893 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:43,823 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:49,388 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:54,354 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:36:57,983 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:01,597 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:05,176 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:05,288 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 17:37:09,812 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:14,011 - config.database - INFO - MySQL connected
+2025-11-30 17:37:14,011 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:14,011 - __main__ - INFO - MySQL reconnected
+2025-11-30 17:37:14,012 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-30 17:37:14,165 - config.database - INFO - Cached 1 encodings
+2025-11-30 17:37:14,166 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-11-30 17:37:14,201 - models.sync_manager - INFO - Updated existing attendance 3
+2025-11-30 17:37:14,293 - models.sync_manager - INFO - Updated existing attendance 3
+2025-11-30 17:37:14,371 - models.sync_manager - INFO - Updated existing attendance 3
+2025-11-30 17:37:14,615 - models.sync_manager - INFO - Inserted new attendance for worker 1
+2025-11-30 17:37:14,709 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:14,816 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:14,891 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:14,975 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:15,193 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:15,319 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:15,439 - models.sync_manager - INFO - Updated existing attendance 4
+2025-11-30 17:37:15,516 - models.sync_manager - INFO - Sync complete: 11 synced, 0 failed, 0 pending
+2025-11-30 17:37:15,516 - __main__ - INFO - Synced 11 records
+2025-11-30 17:37:17,762 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:21,550 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:25,279 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:29,051 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:33,006 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:36,769 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-11-30 17:37:38,791 - __main__ - INFO - Quit key pressed
+2025-11-30 17:37:38,792 - __main__ - INFO - Shutting down...
+2025-11-30 17:37:41,797 - utils.camera - INFO - Releasing camera...
+2025-11-30 17:37:42,183 - utils.camera - INFO - Camera released
+2025-11-30 17:37:42,205 - utils.display - INFO - Display destroyed
+2025-11-30 17:37:42,213 - config.database - INFO - MySQL closed
+2025-11-30 17:37:42,220 - __main__ - INFO - Shutdown complete
+2025-12-04 17:38:15,898 - __main__ - INFO - Creating system instance...
+2025-12-04 17:38:15,899 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-12-04 17:38:15,899 - __main__ - INFO - Initializing...
+2025-12-04 17:38:15,899 - __main__ - INFO - Initializing components...
+2025-12-04 17:38:15,899 - __main__ - INFO - Connecting to databases...
+2025-12-04 17:38:15,901 - config.database - INFO - SQLite initialized
+2025-12-04 17:38:15,969 - config.database - INFO - MySQL connected
+2025-12-04 17:38:15,969 - __main__ - INFO - MySQL connected
+2025-12-04 17:38:15,970 - __main__ - INFO - SQLite database ready
+2025-12-04 17:38:15,970 - __main__ - INFO - Initializing core components...
+2025-12-04 17:38:15,971 - __main__ - INFO - Core components initialized
+2025-12-04 17:38:15,971 - __main__ - INFO - Initializing camera...
+2025-12-04 17:38:15,971 - utils.camera - INFO - Opening camera 0...
+2025-12-04 17:38:19,929 - utils.camera - INFO - Camera opened successfully
+2025-12-04 17:38:31,179 - utils.camera - INFO - Camera initialized
+2025-12-04 17:38:31,182 - utils.camera - INFO - Resolution: 640x480
+2025-12-04 17:38:31,183 - utils.camera - INFO - FPS: 30
+2025-12-04 17:38:31,192 - utils.camera - INFO - FPS set to 30
+2025-12-04 17:38:31,238 - utils.camera - INFO - Resolution set to 640x480
+2025-12-04 17:38:31,239 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-12-04 17:38:31,241 - __main__ - INFO - Initializing GPIO...
+2025-12-04 17:38:31,243 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-12-04 17:38:31,243 - __main__ - INFO - GPIO initialized
+2025-12-04 17:38:31,244 - __main__ - INFO - Initializing display...
+2025-12-04 17:38:31,319 - utils.display - INFO - Display window created (1280x720)
+2025-12-04 17:38:31,320 - __main__ - INFO - Display initialized (windowed)
+2025-12-04 17:38:31,321 - __main__ - INFO - Loading face encodings...
+2025-12-04 17:38:31,322 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 17:38:31,416 - config.database - INFO - Cached 1 encodings
+2025-12-04 17:38:31,417 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 17:38:31,418 - __main__ - INFO - Loaded 1 face encodings
+2025-12-04 17:38:31,419 - __main__ - INFO - ============================================================
+2025-12-04 17:38:31,419 - __main__ - INFO - System ready!
+2025-12-04 17:38:31,421 - __main__ - INFO - ============================================================
+2025-12-04 17:38:31,421 - __main__ - INFO - System ready!
+2025-12-04 17:38:31,428 - __main__ - INFO - Starting attendance system...
+2025-12-04 17:38:31,436 - __main__ - INFO - Sync worker started
+2025-12-04 17:38:32,700 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04:3 17:386,644 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:38:40,294 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:38:55,162 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:38:59,506 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:03,183 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:07,265 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:10,902 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:14,514 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:18,304 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:29,190 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:32,882 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:36,579 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 17:39:40,223 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:40:08,662 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:40:15,820 - __main__ - INFO - Reloading face encodings...
+2025-12-04 05:40:15,821 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 05:40:15,913 - config.database - INFO - Cached 1 encodings
+2025-12-04 05:40:15,914 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 05:40:15,916 - __main__ - INFO - Reloaded 1 faces
+2025-12-04 05:40:18,257 - __main__ - INFO - TIME-IN MODE
+2025-12-04 05:40:18,971 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:40:19,865 - __main__ - INFO - TIME-IN MODE
+2025-12-04 05:40:20,159 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:40:32,204 - __main__ - INFO - TIME-IN MODE
+2025-12-04 05:40:33,760 - __main__ - INFO - Reloading face encodings...
+2025-12-04 05:40:33,761 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 05:40:33,855 - config.database - INFO - Cached 1 encodings
+2025-12-04 05:40:33,855 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 05:40:33,856 - __main__ - INFO - Reloaded 1 faces
+2025-12-04 05:40:36,749 - __main__ - INFO - Reloading face encodings...
+2025-12-04 05:40:36,749 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 05:40:36,838 - config.database - INFO - Cached 1 encodings
+2025-12-04 05:40:36,847 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 05:40:36,847 - __main__ - INFO - Reloaded 1 faces
+2025-12-04 05:40:38,224 - __main__ - INFO - Reloading face encodings...
+2025-12-04 05:40:38,225 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 05:40:38,293 - config.database - INFO - Cached 1 encodings
+2025-12-04 05:40:38,293 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 05:40:38,294 - __main__ - INFO - Reloaded 1 faces
+2025-12-04 05:40:39,282 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:40:40,000 - __main__ - INFO - TIME-IN MODE
+2025-12-04 05:40:44,360 - __main__ - INFO - Quit key pressed
+2025-12-04 05:40:44,361 - __main__ - INFO - Shutting down...
+2025-12-04 05:40:47,372 - utils.camera - INFO - Releasing camera...
+2025-12-04 05:40:47,695 - utils.camera - INFO - Camera released
+2025-12-04 05:40:47,786 - utils.display - INFO - Display destroyed
+2025-12-04 05:40:47,809 - config.database - INFO - MySQL closed
+2025-12-04 05:40:47,810 - __main__ - INFO - Shutdown complete
+2025-12-04 05:41:04,999 - __main__ - INFO - Creating system instance...
+2025-12-04 05:41:05,003 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-12-04 05:41:05,004 - __main__ - INFO - Initializing...
+2025-12-04 05:41:05,004 - __main__ - INFO - Initializing components...
+2025-12-04 05:41:05,006 - __main__ - INFO - Connecting to databases...
+2025-12-04 05:41:05,008 - config.database - INFO - SQLite initialized
+2025-12-04 05:41:05,076 - config.database - INFO - MySQL connected
+2025-12-04 05:41:05,076 - __main__ - INFO - MySQL connected
+2025-12-04 05:41:05,076 - __main__ - INFO - SQLite database ready
+2025-12-04 05:41:05,077 - __main__ - INFO - Initializing core components...
+2025-12-04 05:41:05,077 - __main__ - INFO - Core components initialized
+2025-12-04 05:41:05,077 - __main__ - INFO - Initializing camera...
+2025-12-04 05:41:05,077 - utils.camera - INFO - Opening camera 0...
+2025-12-04 05:41:08,546 - utils.camera - INFO - Camera opened successfully
+2025-12-04 05:41:19,190 - utils.camera - INFO - Camera initialized
+2025-12-04 05:41:19,190 - utils.camera - INFO - Resolution: 640x480
+2025-12-04 05:41:19,191 - utils.camera - INFO - FPS: 30
+2025-12-04 05:41:19,197 - utils.camera - INFO - FPS set to 30
+2025-12-04 05:41:19,222 - utils.camera - INFO - Resolution set to 640x480
+2025-12-04 05:41:19,223 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-12-04 05:41:19,224 - __main__ - INFO - Initializing GPIO...
+2025-12-04 05:41:19,224 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-12-04 05:41:19,225 - __main__ - INFO - GPIO initialized
+2025-12-04 05:41:19,225 - __main__ - INFO - Initializing display...
+2025-12-04 05:41:19,274 - utils.display - INFO - Display window created (1280x720)
+2025-12-04 05:41:19,284 - __main__ - INFO - Display initialized (windowed)
+2025-12-04 05:41:19,289 - __main__ - INFO - Loading face encodings...
+2025-12-04 05:41:19,311 - models.face_recognizer - INFO - Loading face encodings...
+2025-12-04 05:41:19,418 - config.database - INFO - Cached 1 encodings
+2025-12-04 05:41:19,419 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-12-04 05:41:19,419 - __main__ - INFO - Loaded 1 face encodings
+2025-12-04 05:41:19,420 - __main__ - INFO - ============================================================
+2025-12-04 05:41:19,420 - __main__ - INFO - System ready!
+2025-12-04 05:41:19,421 - __main__ - INFO - ============================================================
+2025-12-04 05:41:19,421 - __main__ - INFO - System ready!
+2025-12-04 05:41:19,422 - __main__ - INFO - Starting attendance system...
+2025-12-04 05:41:19,423 - __main__ - INFO - Sync worker started
+2025-12-04 05:41:20,179 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:23,982 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:41:26,940 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:32,587 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:39,065 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:42,729 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:46,587 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:50,277 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:51,066 - __main__ - INFO - TIME-OUT MODE
+2025-12-04 05:41:54,258 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:41:55,940 - __main__ - INFO - TIME-IN MODE
+2025-12-04 05:41:58,882 - __main__ - INFO - Recognized: Ean Paolo Espiritu (ID: 1)
+2025-12-04 05:42:00,448 - __main__ - INFO - Quit key pressed
+2025-12-04 05:42:00,448 - __main__ - INFO - Shutting down...
+2025-12-04 05:42:03,460 - utils.camera - INFO - Releasing camera...
+2025-12-04 05:42:03,787 - utils.camera - INFO - Camera released
+2025-12-04 05:42:03,842 - utils.display - INFO - Display destroyed
+2025-12-04 05:42:03,850 - config.database - INFO - MySQL closed
+2025-12-04 05:42:03,861 - __main__ - INFO - Shutdown complete
