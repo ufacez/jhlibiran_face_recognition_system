@@ -65,6 +65,11 @@ class AttendanceSystem:
         self.success_overlay: Optional[Dict[str, Any]] = None
         self.overlay_lock = threading.Lock()
         self.overlay_end_time: Optional[float] = None
+
+        # Confirmation system
+        self.pending_worker = None
+        self.waiting_for_confirmation = False
+
     
     def initialize(self) -> bool:
         """Initialize all system components"""
@@ -155,6 +160,7 @@ class AttendanceSystem:
                     time.sleep(0.1)
                     continue
                 
+                frame = cv2.flip(frame, 1)
                 self.frame_counter += 1
                 
                 # Process recognition (every N frames for performance)
@@ -165,6 +171,11 @@ class AttendanceSystem:
                     if worker_info:
                         self._handle_recognition(worker_info)
                 
+                worker_info, frame, face_box = self.face_recognizer.recognize_face(frame)
+if worker_info:
+    worker_info['face_box'] = face_box
+    self._handle_recognition(worker_info)
+
                 # Add status overlay
                 status = self._get_status_text(current_fps)
                 frame = self.display.add_status_bar(frame, status)
@@ -191,6 +202,17 @@ class AttendanceSystem:
                 # Display frame
                 self.display.show_frame(frame)
                 
+
+                # If waiting for confirmation — draw green box & name
+                if self.waiting_for_confirmation and self.pending_worker:
+                    worker = self.pending_worker
+                    box = worker.get('face_box')  # you must add this inside recognizer
+                    if box:
+                        (top, right, bottom, left) = box
+                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 3)
+                        cv2.putText(frame, f"{worker['first_name']} {worker['last_name']} (Press C)",
+                                    (left, top - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                        
                 # FPS calculation
                 fps_values.append(1.0 / (time.time() - last_frame_time))
                 last_frame_time = time.time()
@@ -208,6 +230,17 @@ class AttendanceSystem:
                     self._toggle_timeout_mode()
                 elif key == ord('r'):
                     self._reload_encodings()
+                # Confirm recognition
+                elif key == ord('c') and self.waiting_for_confirmation and self.pending_worker:
+                    logger.info("User confirmed recognition")
+                    result = self._process_attendance(self.pending_worker)
+                    worker_name = f"{self.pending_worker['first_name']} {self.pending_worker['last_name']}"
+                    self._show_result_overlay(result, worker_name)
+
+                    # Reset confirmation state
+                    self.pending_worker = None
+                    self.waiting_for_confirmation = False
+
                 
                 # Frame limiting
                 elapsed = time.time() - loop_start
@@ -222,19 +255,20 @@ class AttendanceSystem:
             self.shutdown()
     
     def _handle_recognition(self, worker_info: Dict[str, Any]):
-        """Handle recognized worker - NON-BLOCKING"""
+        """Store recognized worker — DO NOT auto log attendance"""
         now = datetime.now()
-        
+
+        # Cooldown
         if self.last_recognition_time:
             if (now - self.last_recognition_time).total_seconds() < 3:
                 return
-        
+
         self.last_recognition_time = now
-        
-        worker_id = worker_info['worker_id']
+        self.pending_worker = worker_info
+        self.waiting_for_confirmation = True
+
         worker_name = f"{worker_info['first_name']} {worker_info['last_name']}"
-        
-        logger.info(f"Recognized: {worker_name} (ID: {worker_id})")
+        logger.info(f"Recognized (waiting for confirmation): {worker_name}")
         
         result = self._process_attendance(worker_info)
         self._show_result_overlay(result, worker_name)
