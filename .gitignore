@@ -5,3 +5,9 @@ env/
 # Python cache files
 __pycache__/
 *.pyc
+
+data/
+local.db/
+
+logs/
+system.log
