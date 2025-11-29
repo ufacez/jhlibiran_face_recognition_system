@@ -80,15 +80,16 @@ class FaceRecognizer:
         """
         return self.mysql_db.fetch_all(query) if self.mysql_db else []
     
-    def recognize_face(self, frame: np.ndarray) -> Tuple[Optional[Dict[str, Any]], np.ndarray]:
+    def recognize_face(self, frame: np.ndarray) -> Tuple[Optional[Dict[str, Any]], np.ndarray, Optional[Tuple[int, int, int, int]]]:
         """
-        Fast face recognition
+        Fast face recognition with box coordinates
         
         Returns:
-            (worker_info, annotated_frame) or (None, original_frame)
+            (worker_info, annotated_frame, face_box) or (None, original_frame, None)
+            face_box is (top, right, bottom, left) in original frame coordinates
         """
         if not self.known_encodings:
-            return None, frame
+            return None, frame, None
         
         # Resize for speed
         small_frame = cv2.resize(frame, (0, 0), fx=self.scale_factor, fy=self.scale_factor)
@@ -102,7 +103,7 @@ class FaceRecognizer:
         )
         
         if not face_locations:
-            return None, frame
+            return None, frame, None
         
         # Get encodings
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
@@ -126,7 +127,7 @@ class FaceRecognizer:
             )
             
             if True not in matches:
-                # Unknown
+                # Unknown - draw red box but don't return
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 3)
                 cv2.putText(frame, "Unknown", (left, top - 10),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
@@ -143,32 +144,16 @@ class FaceRecognizer:
                 worker_info = self.known_metadata[best_match_idx]
                 confidence = 1 - face_distances[best_match_idx]
                 
-                # Draw box (green)
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 4)
+                # Return worker info with face box (don't draw here - main.py will draw)
+                face_box = (top, right, bottom, left)
                 
-                # Label
-                label = f"{worker_info['first_name']} {worker_info['last_name']}"
-                conf_text = f"{confidence*100:.0f}%"
+                # Add confidence to worker info
+                worker_info_with_confidence = worker_info.copy()
+                worker_info_with_confidence['confidence'] = confidence
                 
-                # Background for text
-                label_y = top - 40
-                if label_y < 0:
-                    label_y = bottom + 30
-                
-                # Semi-transparent background
-                overlay = frame.copy()
-                cv2.rectangle(overlay, (left, label_y - 30), (right, label_y + 5), (0, 255, 0), -1)
-                cv2.addWeighted(overlay, 0.4, frame, 0.6, 0, frame)
-                
-                # Text
-                cv2.putText(frame, label, (left + 5, label_y - 12),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-                cv2.putText(frame, f"✓ {conf_text}", (left + 5, label_y),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
-                
-                return worker_info, frame
+                return worker_info_with_confidence, frame, face_box
         
-        return None, frame
+        return None, frame, None
     
     def train_new_face(self, images: List[np.ndarray], worker_id: int) -> bool:
         """Train new face"""
