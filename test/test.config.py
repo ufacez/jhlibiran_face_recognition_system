@@ -2,7 +2,7 @@
 from config.settings import Config
 
 print("Testing Configuration Settings")
-print("=" * 60)
+print("=" * 519)
 
 # Test MySQL settings
 print("\n📊 MySQL Configuration:")
