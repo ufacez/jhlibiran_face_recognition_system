@@ -1,4 +1,4 @@
-# Ignore Python virtual environments
+# Python virtual environments
 venv/
 env/
 .venv/
@@ -6,7 +6,6 @@ env/
 # Python cache files
 __pycache__/
 *.pyc
-<<<<<<< HEAD
 *.pyo
 *.pyd
 .Python
@@ -17,7 +16,7 @@ data/
 *.db
 *.sqlite
 *.sqlite3
-local.db/
+local.db
 
 # Log files
 logs/
