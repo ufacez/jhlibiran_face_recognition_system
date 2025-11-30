@@ -389,12 +389,12 @@ class AttendanceSystem:
 
         if result.get('success'):
             color = (10, 110, 10)
-            title = "✓ RECORDED"
+            title = "RECORDED"
             detail = f"{worker_name} (ID: {worker_id})"
             detail2 = f"Code: {worker_code} | {timestamp.strftime('%I:%M %p')}"
         else:
             color = (120, 30, 30)
-            title = "✗ ERROR"
+            title = "ALREADY IN"
             detail = result.get('message', '')
             detail2 = ""
 
