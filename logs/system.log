@@ -3324,3 +3324,94 @@ NameError: name 'label' is not defined. Did you mean: 'label_y'?
 2025-11-30 17:53:34,868 - utils.display - INFO - Display destroyed
 2025-11-30 17:53:34,868 - config.database - INFO - MySQL closed
 2025-11-30 17:53:34,869 - __main__ - INFO - Shutdown complete
+2025-11-30 21:09:49,594 - __main__ - INFO - Creating system instance...
+2025-11-30 21:09:49,594 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-30 21:09:49,594 - __main__ - INFO - Initializing...
+2025-11-30 21:09:49,594 - __main__ - INFO - Initializing components...
+2025-11-30 21:09:49,594 - __main__ - INFO - Connecting to databases...
+2025-11-30 21:09:49,598 - config.database - INFO - SQLite initialized
+2025-11-30 21:09:53,744 - config.database - ERROR - MySQL connection failed: 2003 (HY000): Can't connect to MySQL server on 'localhost:3306' (10061)
+2025-11-30 21:09:53,744 - __main__ - WARNING - MySQL unavailable - offline mode
+2025-11-30 21:09:53,748 - __main__ - INFO - SQLite database ready
+2025-11-30 21:09:53,748 - __main__ - INFO - Initializing core components...
+2025-11-30 21:09:53,748 - __main__ - INFO - Core components initialized
+2025-11-30 21:09:53,748 - __main__ - INFO - Initializing camera...
+2025-11-30 21:09:53,748 - utils.camera - INFO - Opening camera 0...
+2025-11-30 21:09:57,809 - utils.camera - INFO - Camera opened successfully
+2025-11-30 21:10:03,605 - utils.camera - INFO - Camera initialized
+2025-11-30 21:10:03,605 - utils.camera - INFO - Resolution: 640x480
+2025-11-30 21:10:03,613 - utils.camera - INFO - FPS: 30
+2025-11-30 21:10:03,618 - utils.camera - INFO - FPS set to 30
+2025-11-30 21:10:03,624 - utils.camera - INFO - Resolution set to 640x480
+2025-11-30 21:10:03,624 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-30 21:10:03,624 - __main__ - INFO - Initializing GPIO...
+2025-11-30 21:10:03,624 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-30 21:10:03,624 - __main__ - INFO - GPIO initialized
+2025-11-30 21:10:03,624 - __main__ - INFO - Initializing display...
+2025-11-30 21:10:03,664 - utils.display - INFO - Display window created (1280x720)
+2025-11-30 21:10:03,664 - __main__ - INFO - Display initialized (windowed)
+2025-11-30 21:10:03,664 - __main__ - INFO - Loading face encodings...
+2025-11-30 21:10:03,664 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-30 21:10:03,665 - models.face_recognizer - WARNING - Using cached encodings (offline)
+2025-11-30 21:10:03,666 - models.face_recognizer - INFO - Loaded 3 encodings
+2025-11-30 21:10:03,666 - __main__ - INFO - Loaded 3 face encodings
+2025-11-30 21:10:03,666 - __main__ - INFO - ============================================================
+2025-11-30 21:10:03,666 - __main__ - INFO - System ready!
+2025-11-30 21:10:03,667 - __main__ - INFO - ============================================================
+2025-11-30 21:10:03,667 - __main__ - INFO - System ready!
+2025-11-30 21:10:03,669 - __main__ - INFO - Starting attendance system...
+2025-11-30 21:10:03,670 - __main__ - INFO - Sync worker started
+2025-11-30 21:10:04,081 - __main__ - INFO - Recognized (waiting for confirmation): Shekainah Gonzales
+2025-11-30 21:10:12,119 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:10:12,416 - __main__ - INFO - Recognized (waiting for confirmation): Shekainah Gonzales
+2025-11-30 21:10:20,454 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:10:23,456 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:10:31,476 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:10:32,657 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:10:40,668 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:10:41,009 - __main__ - INFO - Recognized (waiting for confirmation): Shekainah Gonzales
+2025-11-30 21:10:44,763 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:10:44,763 - config.database - INFO - Buffered attendance for worker 2
+2025-11-30 21:10:49,824 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:10:57,871 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:10:58,340 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:06,354 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:06,820 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:14,854 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:15,563 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:23,566 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:23,857 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:26,566 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:11:26,590 - config.database - INFO - Buffered attendance for worker 1
+2025-11-30 21:11:29,477 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:37,510 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:40,739 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:48,774 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:49,175 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:11:57,208 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:11:57,505 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:12:05,520 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:12:06,008 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:12:14,023 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:12:14,514 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:12:22,568 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:12:22,881 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:12:23,523 - __main__ - INFO - TIME-OUT MODE
+2025-11-30 21:12:30,939 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 21:12:31,345 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:12:32,199 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:12:35,488 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:12:36,117 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:12:39,125 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:12:39,383 - __main__ - INFO - TIME-IN MODE
+2025-11-30 21:12:40,067 - __main__ - INFO - TIME-OUT MODE
+2025-11-30 21:12:41,166 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:12:44,048 - __main__ - INFO - Recognized (waiting for confirmation): Avery Libiran
+2025-11-30 21:12:44,880 - __main__ - INFO - User confirmed recognition
+2025-11-30 21:12:48,560 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 21:12:50,675 - __main__ - INFO - Quit key pressed
+2025-11-30 21:12:50,675 - __main__ - INFO - Shutting down...
+2025-11-30 21:12:53,689 - utils.camera - INFO - Releasing camera...
+2025-11-30 21:12:54,051 - utils.camera - INFO - Camera released
+2025-11-30 21:12:54,060 - utils.display - INFO - Display destroyed
+2025-11-30 21:12:54,063 - __main__ - INFO - Shutdown complete
