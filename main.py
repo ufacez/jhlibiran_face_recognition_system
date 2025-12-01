@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 import sys
+import os
 import cv2
 import numpy as np
 from datetime import datetime
@@ -14,6 +15,11 @@ from models.sync_manager import SyncManager
 from utils.camera import Camera
 from utils.gpio_handler import GPIOHandler
 from utils.display import Display
+
+# Create logs directory if it doesn't exist
+log_dir = os.path.dirname(Config.LOG_FILE)
+if log_dir and not os.path.exists(log_dir):
+    os.makedirs(log_dir, exist_ok=True)
 
 # Setup logging with UTF-8 encoding
 logging.basicConfig(
