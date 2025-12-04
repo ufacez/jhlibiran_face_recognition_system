@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class FaceRecognizer:
-    """Optimized face recognition - 30 FPS capable"""
+    """Optimized face recognition - 30 FPS capable - MULTIPLE FACES"""
     
     def __init__(self, mysql_db: MySQLDatabase, sqlite_db: SQLiteDatabase):
         self.mysql_db = mysql_db
@@ -82,11 +82,11 @@ class FaceRecognizer:
     
     def recognize_face(self, frame: np.ndarray) -> Tuple[Optional[Dict[str, Any]], np.ndarray, Optional[Tuple[int, int, int, int]]]:
         """
-        Fast face recognition with box coordinates
+        Fast face recognition - DRAWS ALL FACES with names
+        Returns FIRST recognized worker for confirmation system
         
         Returns:
-            (worker_info, annotated_frame, face_box) or (None, original_frame, None)
-            face_box is (top, right, bottom, left) in original frame coordinates
+            (worker_info, annotated_frame, face_box) or (None, frame_with_all_faces, None)
         """
         if not self.known_encodings:
             return None, frame, None
@@ -95,7 +95,7 @@ class FaceRecognizer:
         small_frame = cv2.resize(frame, (0, 0), fx=self.scale_factor, fy=self.scale_factor)
         rgb_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         
-        # Detect faces (HOG is faster)
+        # Detect ALL faces
         face_locations = face_recognition.face_locations(
             rgb_frame, 
             model='hog',
@@ -105,13 +105,16 @@ class FaceRecognizer:
         if not face_locations:
             return None, frame, None
         
-        # Get encodings
+        # Get encodings for all faces
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
         
         # Scale back to original size
         scale_reciprocal = 1.0 / self.scale_factor
         
-        # Match faces
+        first_recognized_worker = None
+        first_face_box = None
+        
+        # Process each face
         for (top, right, bottom, left), encoding in zip(face_locations, face_encodings):
             # Scale coordinates
             top = int(top * scale_reciprocal)
@@ -119,7 +122,7 @@ class FaceRecognizer:
             bottom = int(bottom * scale_reciprocal)
             left = int(left * scale_reciprocal)
             
-            # Compare
+            # Compare with known faces
             matches = face_recognition.compare_faces(
                 self.known_encodings,
                 encoding,
@@ -127,10 +130,10 @@ class FaceRecognizer:
             )
             
             if True not in matches:
-                # Unknown - draw red box but don't return
+                # Unknown - draw red box
                 cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 3)
                 cv2.putText(frame, "Unknown", (left, top - 10),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
                 continue
             
             # Best match
@@ -141,19 +144,29 @@ class FaceRecognizer:
             best_match_idx = np.argmin(face_distances)
             
             if matches[best_match_idx]:
-                worker_info = self.known_metadata[best_match_idx]
+                worker_info = self.known_metadata[best_match_idx].copy()
                 confidence = 1 - face_distances[best_match_idx]
+                worker_info['confidence'] = confidence
                 
-                # Return worker info with face box (don't draw here - main.py will draw)
-                face_box = (top, right, bottom, left)
+                # Draw GREEN box
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 200, 0), 3)
                 
-                # Add confidence to worker info
-                worker_info_with_confidence = worker_info.copy()
-                worker_info_with_confidence['confidence'] = confidence
+                # Draw NAME above box
+                first = worker_info.get("first_name") or ""
+                last = worker_info.get("last_name") or ""
+                name = f"{first} {last}".strip() or "Unknown"
                 
-                return worker_info_with_confidence, frame, face_box
+                label_y = max(25, top - 10)
+                cv2.putText(frame, name, (left, label_y),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                
+                # Store first recognized worker for confirmation system
+                if first_recognized_worker is None:
+                    first_recognized_worker = worker_info
+                    first_face_box = (top, right, bottom, left)
         
-        return None, frame, None
+        # Return first recognized worker (if any) for confirmation
+        return first_recognized_worker, frame, first_face_box
     
     def train_new_face(self, images: List[np.ndarray], worker_id: int) -> bool:
         """Train new face"""
