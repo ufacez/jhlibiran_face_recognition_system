@@ -3405,3 +3405,89 @@ NameError: name 'label' is not defined. Did you mean: 'label_y'?
 2025-11-30 16:12:32,185 - utils.display - INFO - Display destroyed
 2025-11-30 16:12:32,186 - config.database - INFO - MySQL closed
 2025-11-30 16:12:32,186 - __main__ - INFO - Shutdown complete
+2025-11-30 22:37:44,891 - __main__ - INFO - Creating system instance...
+2025-11-30 22:37:44,906 - __main__ - INFO - Initializing TrackSite Attendance System...
+2025-11-30 22:37:44,906 - __main__ - INFO - Initializing...
+2025-11-30 22:37:44,906 - __main__ - INFO - Initializing components...
+2025-11-30 22:37:44,906 - __main__ - INFO - Connecting to databases...
+2025-11-30 22:37:44,917 - config.database - INFO - SQLite initialized
+2025-11-30 22:37:45,001 - config.database - INFO - MySQL connected
+2025-11-30 22:37:45,002 - __main__ - INFO - MySQL connected
+2025-11-30 22:37:45,002 - __main__ - INFO - SQLite database ready
+2025-11-30 22:37:45,002 - __main__ - INFO - Initializing core components...
+2025-11-30 22:37:45,002 - __main__ - INFO - Core components initialized
+2025-11-30 22:37:45,002 - __main__ - INFO - Initializing camera...
+2025-11-30 22:37:45,003 - utils.camera - INFO - Opening camera 0...
+2025-11-30 22:37:48,552 - utils.camera - INFO - Camera opened successfully
+2025-11-30 22:37:58,344 - utils.camera - INFO - Camera initialized
+2025-11-30 22:37:58,345 - utils.camera - INFO - Resolution: 640x480
+2025-11-30 22:37:58,346 - utils.camera - INFO - FPS: 30
+2025-11-30 22:37:58,354 - utils.camera - INFO - FPS set to 30
+2025-11-30 22:37:58,366 - utils.camera - INFO - Resolution set to 640x480
+2025-11-30 22:37:58,366 - __main__ - INFO - Camera initialized (640x480 @ 30fps)
+2025-11-30 22:37:58,366 - __main__ - INFO - Initializing GPIO...
+2025-11-30 22:37:58,367 - utils.gpio_handler - INFO - GPIO Handler: PC mode (no hardware)
+2025-11-30 22:37:58,367 - __main__ - INFO - GPIO initialized
+2025-11-30 22:37:58,367 - __main__ - INFO - Initializing display...
+2025-11-30 22:37:58,409 - utils.display - INFO - Display window created (1280x720)
+2025-11-30 22:37:58,410 - __main__ - INFO - Display initialized (windowed)
+2025-11-30 22:37:58,410 - __main__ - INFO - Loading face encodings...
+2025-11-30 22:37:58,410 - models.face_recognizer - INFO - Loading face encodings...
+2025-11-30 22:37:58,743 - config.database - INFO - Cached 1 encodings
+2025-11-30 22:37:58,744 - models.face_recognizer - INFO - Loaded 1 encodings
+2025-11-30 22:37:58,745 - __main__ - INFO - Loaded 1 face encodings
+2025-11-30 22:37:58,745 - __main__ - INFO - ============================================================
+2025-11-30 22:37:58,745 - __main__ - INFO - System ready!
+2025-11-30 22:37:58,746 - __main__ - INFO - ============================================================
+2025-11-30 22:37:58,746 - __main__ - INFO - System ready!
+2025-11-30 22:37:58,749 - __main__ - INFO - Starting attendance system...
+2025-11-30 22:37:58,751 - __main__ - INFO - Sync worker started
+2025-11-30 22:37:59,649 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:08,106 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:38:08,748 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:17,076 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:38:17,951 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:26,293 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:38:27,065 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:35,786 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:38:36,543 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:45,125 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:38:45,784 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:48,053 - __main__ - INFO - User cancelled confirmation
+2025-11-30 22:38:48,838 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:38:56,846 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:00,144 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:08,649 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:09,359 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:17,729 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:18,538 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:26,737 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:27,388 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:36,252 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:37,069 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:45,341 - __main__ - INFO - Confirmation timeout - resetting
+2025-11-30 22:39:46,299 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-11-30 22:39:54,299 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:39:55,424 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:03,812 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:04,402 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:12,610 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:13,215 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:21,450 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:22,268 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:22,996 - __main__ - INFO - User confirmed recognition
+2025-12-04 22:40:23,016 - config.database - ERROR - Fetch failed: MySQL Connection not available
+2025-12-04 22:40:23,017 - config.database - ERROR - Query failed: MySQL Connection not available
+2025-12-04 22:40:26,107 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:29,856 - __main__ - INFO - User confirmed recognition
+2025-12-04 22:40:33,058 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:41,218 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:41,831 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:50,097 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:50,835 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:40:58,887 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:40:59,492 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:41:07,953 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:41:08,539 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
+2025-12-04 22:41:16,930 - __main__ - INFO - Confirmation timeout - resetting
+2025-12-04 22:41:17,497 - __main__ - INFO - Recognized (waiting for confirmation): Ean Paolo Espiritu
