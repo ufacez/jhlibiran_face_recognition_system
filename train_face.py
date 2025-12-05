@@ -133,7 +133,7 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
         cv2.putText(display_frame, f"Captured: {count}/{num_images}", (10, 60),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
-        cv2.putText(display_frame, f"Training: {worker_name}", (10, 90),
+        cv2.putText(display_frame, f"Worker: {worker_name}", (10, 90),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
         # Guide box
