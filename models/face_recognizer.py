@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class FaceRecognizer:
-    """Optimized face recognition - 30 FPS capable - MULTIPLE FACES"""
+    """Optimized face recognition - smooth 30 FPS"""
     
     def __init__(self, mysql_db: MySQLDatabase, sqlite_db: SQLiteDatabase):
         self.mysql_db = mysql_db
@@ -20,9 +20,14 @@ class FaceRecognizer:
         self.known_metadata: List[Dict[str, Any]] = []
         self.last_update: Optional[float] = None
         
-        # Performance settings
-        self.scale_factor = 0.5  # 50% size for speed
-        self.tolerance = 0.5  # Recognition threshold
+        # Performance settings - OPTIMIZED for smooth tracking
+        self.scale_factor = 0.35  # Further reduced for faster processing
+        self.tolerance = 0.5
+        
+        # Cache last face locations to maintain smooth tracking
+        self.last_face_locations = []
+        self.last_face_names = []
+        self.last_face_ids = []  # Track worker IDs
     
     def load_encodings(self) -> int:
         """Load face encodings from database"""
@@ -82,8 +87,7 @@ class FaceRecognizer:
     
     def recognize_face(self, frame: np.ndarray) -> Tuple[Optional[Dict[str, Any]], np.ndarray, Optional[Tuple[int, int, int, int]]]:
         """
-        Fast face recognition - DRAWS ALL FACES with names
-        Returns FIRST recognized worker for confirmation system
+        SMOOTH CONTINUOUS face recognition - tracks faces every frame
         
         Returns:
             (worker_info, annotated_frame, face_box) or (None, frame_with_all_faces, None)
@@ -95,17 +99,25 @@ class FaceRecognizer:
         small_frame = cv2.resize(frame, (0, 0), fx=self.scale_factor, fy=self.scale_factor)
         rgb_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
         
-        # Detect ALL faces
+        # Detect ALL faces - FAST mode
         face_locations = face_recognition.face_locations(
             rgb_frame, 
             model='hog',
-            number_of_times_to_upsample=1
+            number_of_times_to_upsample=0
         )
         
+        # If no faces found, keep showing last known faces briefly
         if not face_locations:
+            # Draw last known faces (faded)
+            for i, (top, right, bottom, left) in enumerate(self.last_face_locations):
+                if i < len(self.last_face_names):
+                    name = self.last_face_names[i]
+                    cv2.rectangle(frame, (left, top), (right, bottom), (0, 150, 0), 2)
+                    cv2.putText(frame, name, (left, max(25, top - 10)),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 150, 0), 2)
             return None, frame, None
         
-        # Get encodings for all faces
+        # Get encodings for detected faces
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
         
         # Scale back to original size
@@ -113,6 +125,10 @@ class FaceRecognizer:
         
         first_recognized_worker = None
         first_face_box = None
+        
+        current_face_locations = []
+        current_face_names = []
+        current_face_ids = []
         
         # Process each face
         for (top, right, bottom, left), encoding in zip(face_locations, face_encodings):
@@ -122,6 +138,8 @@ class FaceRecognizer:
             bottom = int(bottom * scale_reciprocal)
             left = int(left * scale_reciprocal)
             
+            current_face_locations.append((top, right, bottom, left))
+            
             # Compare with known faces
             matches = face_recognition.compare_faces(
                 self.known_encodings,
@@ -130,10 +148,18 @@ class FaceRecognizer:
             )
             
             if True not in matches:
-                # Unknown - draw red box
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 3)
-                cv2.putText(frame, "Unknown", (left, top - 10),
+                # Unknown - draw red box CONTINUOUSLY
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 4)
+                
+                # Shadow
+                cv2.putText(frame, "Unknown", (left + 2, max(25, top - 10) + 2),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 3)
+                # Main text
+                cv2.putText(frame, "Unknown", (left, max(25, top - 10)),
                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+                
+                current_face_names.append("Unknown")
+                current_face_ids.append(None)
                 continue
             
             # Best match
@@ -148,22 +174,35 @@ class FaceRecognizer:
                 confidence = 1 - face_distances[best_match_idx]
                 worker_info['confidence'] = confidence
                 
-                # Draw GREEN box
-                cv2.rectangle(frame, (left, top), (right, bottom), (0, 200, 0), 3)
+                # Draw GREEN box CONTINUOUSLY - THICK and BRIGHT
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 5)
                 
                 # Draw NAME above box
                 first = worker_info.get("first_name") or ""
                 last = worker_info.get("last_name") or ""
                 name = f"{first} {last}".strip() or "Unknown"
                 
-                label_y = max(25, top - 10)
+                current_face_names.append(name)
+                current_face_ids.append(worker_info.get('worker_id'))
+                
+                label_y = max(30, top - 10)
+                
+                # Shadow for readability
+                cv2.putText(frame, name, (left + 2, label_y + 2),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 4)
+                # Main text - BRIGHT GREEN
                 cv2.putText(frame, name, (left, label_y),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
                 
                 # Store first recognized worker for confirmation system
                 if first_recognized_worker is None:
                     first_recognized_worker = worker_info
                     first_face_box = (top, right, bottom, left)
+        
+        # Update cache - ALWAYS maintain tracking
+        self.last_face_locations = current_face_locations
+        self.last_face_names = current_face_names
+        self.last_face_ids = current_face_ids
         
         # Return first recognized worker (if any) for confirmation
         return first_recognized_worker, frame, first_face_box

@@ -55,7 +55,7 @@ class AttendanceSystem:
         # Performance optimization
         self.target_fps = 30
         self.frame_time = 1.0 / self.target_fps
-        self.skip_frames = 3
+        self.skip_frames = 1  # Process EVERY frame for smooth tracking
         self.frame_counter = 0
 
         # Threading
