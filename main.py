@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 
 class AttendanceSystem:
-    """Main attendance system - optimized for performance"""
+    """Main attendance system - AUTO-RECORD mode (no confirmation needed)"""
 
     def __init__(self):
-        logger.info("Initializing TrackSite Attendance System...")
+        logger.info("Initializing TrackSite Attendance System (Auto-Record)...")
 
         # Database connections
         self.mysql_db: Optional[MySQLDatabase] = None
@@ -66,13 +66,9 @@ class AttendanceSystem:
         self.overlay_lock = threading.Lock()
         self.overlay_end_time: Optional[float] = None
 
-        # Confirmation system
-        self.pending_worker: Optional[Dict[str, Any]] = None
-        self.waiting_for_confirmation = False
-        self.confirmation_timeout = 8.0
-        self.confirmation_start_time: Optional[float] = None
+        # Auto-record system (no confirmation needed)
         self.last_recognized_worker_id: Optional[int] = None
-        self.recognition_cooldown = 3.0
+        self.recognition_cooldown = 3.0  # Prevent duplicate scans within 3 seconds
 
         # Lightweight UI params
         self.font = cv2.FONT_HERSHEY_SIMPLEX
@@ -147,7 +143,7 @@ class AttendanceSystem:
                 logger.info(f"Loaded {encoding_count} face encodings")
 
             logger.info("=" * 60)
-            logger.info("System ready!")
+            logger.info("System ready! (AUTO-RECORD MODE)")
             logger.info("=" * 60)
             return True
 
@@ -156,8 +152,8 @@ class AttendanceSystem:
             return False
 
     def run(self):
-        """Main loop - optimized for minimal lag"""
-        logger.info("Starting attendance system...")
+        """Main loop - AUTO-RECORD mode"""
+        logger.info("Starting attendance system (Auto-Record)...")
         self.is_running = True
 
         # Start background sync
@@ -179,16 +175,7 @@ class AttendanceSystem:
                 frame = cv2.flip(frame, 1)
                 self.frame_counter += 1
 
-                # Confirmation timeout reset
-                if self.waiting_for_confirmation and self.confirmation_start_time:
-                    if time.time() - self.confirmation_start_time > self.confirmation_timeout:
-                        logger.info("Confirmation timeout - resetting")
-                        self.pending_worker = None
-                        self.waiting_for_confirmation = False
-                        self.confirmation_start_time = None
-                        self.last_recognized_worker_id = None
-
-                # Recognition (every N frames) - ALWAYS runs, never stops
+                # Recognition (every N frames) - ALWAYS runs
                 if self.frame_counter % self.skip_frames == 0:
                     try:
                         worker_info, frame, face_box = self.face_recognizer.recognize_face(frame)
@@ -202,15 +189,11 @@ class AttendanceSystem:
                             worker_info = None
                             face_box = None
 
-                    # Handle recognition for confirmation
-                    if worker_info and face_box and not self.waiting_for_confirmation:
-                        self._handle_recognition(worker_info, face_box)
+                    # AUTO-RECORD: Process attendance immediately when face recognized
+                    if worker_info and face_box:
+                        self._handle_recognition_auto(worker_info)
 
-                # Show confirmation text (no rectangle box, just overlay text)
-                if self.waiting_for_confirmation and self.pending_worker:
-                    frame = self._draw_confirmation_text(frame, self.pending_worker)
-
-                # Optimized status bar (removed FPS)
+                # Optimized status bar
                 status = self._get_status_text()
                 frame = self.display.add_status_bar(frame, status)
 
@@ -245,12 +228,6 @@ class AttendanceSystem:
                     self._toggle_timeout_mode()
                 elif key == ord('r'):
                     self._reload_encodings()
-                elif key == ord('c') or key == ord('C'):
-                    if self.waiting_for_confirmation and self.pending_worker:
-                        self._confirm_attendance()
-                elif key == ord('x') or key == ord('X'):
-                    if self.waiting_for_confirmation:
-                        self._cancel_confirmation()
 
                 # FPS limiter
                 next_frame = loop_start + self.frame_time
@@ -265,98 +242,33 @@ class AttendanceSystem:
         finally:
             self.shutdown()
 
-    def _handle_recognition(self, worker_info: Dict[str, Any], face_box: Tuple[int, int, int, int]):
-        """Store recognized worker and wait for confirmation"""
+    def _handle_recognition_auto(self, worker_info: Dict[str, Any]):
+        """AUTO-RECORD: Immediately process attendance without confirmation"""
         now = datetime.now()
         worker_id = worker_info.get('worker_id')
 
-        # Cooldown check
+        # Cooldown check - prevent duplicate scans
         if self.last_recognized_worker_id == worker_id:
             if self.last_recognition_time:
                 time_diff = (now - self.last_recognition_time).total_seconds()
                 if time_diff < self.recognition_cooldown:
-                    return
+                    return  # Skip - too soon since last scan
         
+        # Update tracking
         self.last_recognition_time = now
         self.last_recognized_worker_id = worker_id
         
-        self.pending_worker = worker_info.copy()
-        self.waiting_for_confirmation = True
-        self.confirmation_start_time = time.time()
-
+        # Process attendance immediately
         worker_name = f"{worker_info.get('first_name','')} {worker_info.get('last_name','')}"
-        logger.info(f"Recognized (waiting for confirmation): {worker_name}")
-
-    def _confirm_attendance(self):
-        """User pressed 'C' - process attendance"""
-        if not self.pending_worker:
-            return
-
-        logger.info("User confirmed recognition")
-        worker_name = f"{self.pending_worker.get('first_name','')} {self.pending_worker.get('last_name','')}"
-        worker_id = self.pending_worker.get('worker_id', 0)
-        worker_code = self.pending_worker.get('worker_code', 'N/A')
-
+        worker_code = worker_info.get('worker_code', 'N/A')
+        
+        logger.info(f"Auto-recording attendance: {worker_name}")
+        
         # Process attendance
-        result = self._process_attendance(self.pending_worker)
-
+        result = self._process_attendance(worker_info)
+        
         # Show result overlay
         self._show_result_overlay(result, worker_name, worker_id, worker_code)
-
-        # Reset confirmation state
-        self.pending_worker = None
-        self.waiting_for_confirmation = False
-        self.confirmation_start_time = None
-
-    def _cancel_confirmation(self):
-        """User pressed 'X' - cancel confirmation"""
-        logger.info("User cancelled confirmation")
-        self.pending_worker = None
-        self.waiting_for_confirmation = False
-        self.confirmation_start_time = None
-        self.last_recognized_worker_id = None
-
-    def _draw_confirmation_text(self, frame, worker_info):
-        """Draw simple confirmation text overlay - no rectangle box"""
-        h, w = frame.shape[:2]
-
-        first = worker_info.get("first_name") or ""
-        last = worker_info.get("last_name") or ""
-        name = f"{first} {last}".strip() or "Unknown"
-        worker_id = worker_info.get("worker_id", 0)
-        worker_code = worker_info.get("worker_code", "N/A")
-
-        # Draw text at top center with shadow for readability
-        center_x = w // 2
-        
-        # Line 1: Worker name
-        text1 = name
-        (text_w, text_h), _ = cv2.getTextSize(text1, cv2.FONT_HERSHEY_SIMPLEX, 1.2, 2)
-        x1 = center_x - text_w // 2
-        y1 = 80
-        
-        cv2.putText(frame, text1, (x1 + 2, y1 + 2), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 0, 0), 4)
-        cv2.putText(frame, text1, (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
-        
-        # Line 2: ID and Code
-        text2 = f"ID: {worker_id} | Code: {worker_code}"
-        (text_w2, text_h2), _ = cv2.getTextSize(text2, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)
-        x2 = center_x - text_w2 // 2
-        y2 = 120
-        
-        cv2.putText(frame, text2, (x2 + 2, y2 + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 3)
-        cv2.putText(frame, text2, (x2, y2), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (220, 220, 220), 2)
-        
-        # Line 3: Instructions
-        text3 = "Press C to CONFIRM | Press X to CANCEL"
-        (text_w3, text_h3), _ = cv2.getTextSize(text3, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
-        x3 = center_x - text_w3 // 2
-        y3 = 160
-        
-        cv2.putText(frame, text3, (x3 + 2, y3 + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 3)
-        cv2.putText(frame, text3, (x3, y3), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
-
-        return frame
 
     def _draw_success_banner(self, frame: np.ndarray, overlay_data: Dict[str, Any]) -> np.ndarray:
         """Success banner with time-in information"""
@@ -373,7 +285,6 @@ class AttendanceSystem:
             color = (10, 110, 10)
             title = "RECORDED"
             detail = f"{worker_name} (ID: {worker_id})"
-            # Format: "Code: XXX | Time In: 02:30 PM"
             time_str = timestamp.strftime('%I:%M %p')
             detail2 = f"Code: {worker_code} | Time In: {time_str}"
         else:
@@ -451,20 +362,20 @@ class AttendanceSystem:
             logger.warning(f"Reload failed: {e}")
 
     def _get_status_text(self) -> str:
-        """Get optimized status text - removed FPS, added time and full date"""
+        """Get optimized status text"""
         parts = []
         
         # Online/Offline status
         parts.append("[ONLINE]" if (self.mysql_db and getattr(self.mysql_db, 'is_connected', False)) else "[OFFLINE]")
         
-        # Mode (Full text instead of abbreviation)
+        # Mode
         parts.append("TIME OUT" if self.timeout_mode else "TIME IN")
         
         # Current time in 12-hour format
         now = datetime.now()
         parts.append(now.strftime('%I:%M:%S %p'))
         
-        # Full date format (e.g., "November 30, 2025")
+        # Full date format
         parts.append(now.strftime('%B %d, %Y'))
 
         return " | ".join(parts)
@@ -533,7 +444,7 @@ class AttendanceSystem:
 def main():
     """Main entry point"""
     print("\n" + "=" * 70)
-    print("  TrackSite Attendance System")
+    print("  TrackSite Attendance System - AUTO-RECORD MODE")
     print("=" * 70 + "\n")
 
     try:
@@ -547,12 +458,11 @@ def main():
             return 1
 
         logger.info("System ready!")
-        print("\nSystem ready!")
+        print("\nSystem ready! (Auto-Record Mode)")
         print("\n" + "=" * 70)
         print("  CONTROLS")
         print("=" * 70)
-        print("  - Press 'C' to CONFIRM recognized face")
-        print("  - Press 'X' to CANCEL confirmation")
+        print("  - Attendance is AUTO-RECORDED when face is recognized")
         print("  - Press 'T' to toggle Time-Out mode")
         print("  - Press 'R' to reload encodings")
         print("  - Press 'Q' or ESC to quit")
