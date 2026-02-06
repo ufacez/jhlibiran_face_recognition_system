@@ -286,7 +286,7 @@ class AttendanceSystem:
             title = "RECORDED"
             detail = f"{worker_name} (ID: {worker_id})"
             time_str = timestamp.strftime('%I:%M %p')
-            detail2 = f"Code: {worker_code} | Time In: {time_str}"
+            detail2 = f"Code: {worker_code} | Time: {time_str}"
         else:
             color = (120, 30, 30)
             title = "ALREADY IN"
