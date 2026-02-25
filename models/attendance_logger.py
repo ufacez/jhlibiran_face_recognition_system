@@ -51,11 +51,11 @@ class AttendanceLogger:
             
             if existing:
                 if existing['time_out'] is None:
-                    # Already timed-in, offer time-out
+                    # Already timed-in
                     return {
                         'success': False,
                         'action': 'already_in',
-                        'message': 'Already timed in. Ready for time-out?',
+                        'message': 'Already scanned - Attendance recorded',
                         'attendance_id': existing['attendance_id']
                     }
                 else:
@@ -63,7 +63,7 @@ class AttendanceLogger:
                     return {
                         'success': False,
                         'action': 'completed',
-                        'message': 'Attendance already completed today'
+                        'message': 'Already scanned - Time in and out completed'
                     }
         
         # Insert time-in
@@ -143,11 +143,27 @@ class AttendanceLogger:
             """, (worker_id, today))
             
             if not record:
-                return {
-                    'success': False,
-                    'action': 'no_timein',
-                    'message': 'No time-in found for today'
-                }
+                # No time-in found - auto-create one for smooth experience
+                logger.warning(f"Worker {worker_id} trying to time-out without time-in. Auto-creating time-in.")
+                auto_timein = self.log_timein(worker_id)
+                if not auto_timein.get('success'):
+                    return {
+                        'success': False,
+                        'action': 'error',
+                        'message': 'Please scan again for time-in first'
+                    }
+                # Now get the record we just created
+                record = self.mysql_db.fetch_one("""
+                    SELECT attendance_id, time_in FROM attendance
+                    WHERE worker_id = %s AND attendance_date = %s
+                    AND time_out IS NULL AND is_archived = 0
+                """, (worker_id, today))
+                if not record:
+                    return {
+                        'success': False,
+                        'action': 'error',
+                        'message': 'System error - please try again'
+                    }
             
             # Calculate hours - FIXED: Handle both string and timedelta
             time_in_value = record['time_in']
@@ -200,10 +216,12 @@ class AttendanceLogger:
             )
             
             if not success:
+                # Auto-create time-in for offline mode
+                logger.warning(f"Worker {worker_id} trying to time-out without time-in (offline). Auto-creating.")
                 return {
                     'success': False,
-                    'action': 'no_timein',
-                    'message': 'No time-in found in buffer'
+                    'action': 'error',
+                    'message': 'Please scan again for time-in first'
                 }
         
         return {

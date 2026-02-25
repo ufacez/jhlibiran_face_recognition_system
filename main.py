@@ -299,15 +299,25 @@ class AttendanceSystem:
         else:
             color = (120, 30, 30)
             if action == 'already_in':
-                title = "ALREADY TIMED IN"
+                title = "ALREADY SCANNED"
+                detail = f"{worker_name} ({worker_id})"
+                detail2 = \"Attendance already recorded today\"
             elif action == 'completed':
-                title = "ALREADY COMPLETED"
-            elif action == 'no_timein':
-                title = "NO TIME-IN RECORD"
+                title = "ALREADY COMPLETE"
+                detail = f\"{worker_name} ({worker_id})\"
+                detail2 = \"Time in and out completed\"
+            elif action == 'duplicate':
+                title = \"ALREADY SCANNED\"
+                detail = result.get('message', '')
+                detail2 = \"Please wait before scanning again\"
+            elif action == 'error':
+                title = \"SYSTEM MESSAGE\"
+                detail = result.get('message', '')
+                detail2 = \"\"
             else:
-                title = "ERROR"
-            detail = result.get('message', '')
-            detail2 = ""
+                title = \"NOTIFICATION\"
+                detail = result.get('message', '')
+                detail2 = \"\"
 
         # Solid banner
         cv2.rectangle(frame, (0, 0), (w, banner_h), color, -1)

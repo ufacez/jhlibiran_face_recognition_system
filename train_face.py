@@ -82,16 +82,31 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
     print(f"\n📸 Capturing {num_images} training images for: {worker_name}")
     print("=" * 80)
     print("INSTRUCTIONS:")
-    print("  ✓ Look at camera from different angles")
+    print("  ✓ Follow the on-screen positioning guide")
     print("  ✓ Keep your face clearly visible")
     print("  ✓ Ensure good lighting")
     print("  ✓ Press SPACE to capture (only when face detected)")
     print("  ✓ Press Q to quit")
     print("=" * 80)
 
+    # Position guide sequence for better face angles
+    position_guides = [
+        "Look FORWARD (center)",
+        "Look slightly LEFT",
+        "Look slightly RIGHT",
+        "Look slightly UP",
+        "Look slightly DOWN",
+        "Look FORWARD again",
+        "Slight LEFT + UP",
+        "Slight RIGHT + UP",
+        "Slight LEFT + DOWN",
+        "Look FORWARD (final)"
+    ]
+
     count = 0
     frame_counter = 0
     face_locations = []
+    face_landmarks_list = []  # Store landmarks
     DETECT_INTERVAL = 3
     SCALE_FACTOR = 0.25
 
@@ -116,18 +131,22 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
                  int(b / SCALE_FACTOR), int(l / SCALE_FACTOR))
                 for (t, r, b, l) in small_locs
             ]
+            
+            # Get facial landmarks
+            try:
+                face_landmarks_list = face_recognition.face_landmarks(rgb_frame)
+            except Exception:
+                face_landmarks_list = []
 
         face_detected = len(face_locations) > 0
 
-        # Draw face boxes and landmarks
+        # Draw face boxes
         for (top, right, bottom, left) in face_locations:
             cv2.rectangle(display_frame, (left, top), (right, bottom), (0, 255, 0), 3)
         
-        # Draw facial landmarks mesh for tracking feedback
-        if frame_counter % DETECT_INTERVAL == 0 and face_detected:
+        # Draw facial landmarks mesh CONTINUOUSLY (not just on detect interval)
+        if face_detected and face_landmarks_list:
             try:
-                face_landmarks_list = face_recognition.face_landmarks(rgb_frame)
-                
                 for face_landmarks in face_landmarks_list:
                     # Draw facial feature points
                     for feature_name, points in face_landmarks.items():
@@ -144,11 +163,16 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
                         # Draw small circles on key points
                         for point in points:
                             cv2.circle(display_frame, point, 1, (0, 200, 255), -1)
-            except Exception as e:
-                # Skip landmark detection on error
+            except Exception:
                 pass
 
-        # Status overlay - NO EMOJIS
+        # Current position guide
+        if count < len(position_guides):
+            current_guide = position_guides[count]
+        else:
+            current_guide = "Look FORWARD"
+        
+        # Status overlay with positioning guide
         if face_detected:
             status_text = "FACE TRACKED - Press SPACE to capture"
             status_color = (0, 255, 0)
@@ -158,11 +182,36 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
 
         cv2.putText(display_frame, status_text, (10, 30),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, status_color, 2)
+        
+        # Position guide - LARGE and CENTERED
+        cv2.putText(display_frame, current_guide, (10, 65),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 200, 0), 2)
 
-        cv2.putText(display_frame, f"Captured: {count}/{num_images}", (10, 60),
-                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
+        # Progress bar
+        h, w = display_frame.shape[:2]
+        progress_bar_width = w - 20
+        progress_bar_height = 25
+        progress_x = 10
+        progress_y = h - 35
+        
+        # Background of progress bar
+        cv2.rectangle(display_frame, (progress_x, progress_y), 
+                     (progress_x + progress_bar_width, progress_y + progress_bar_height), 
+                     (50, 50, 50), -1)
+        
+        # Progress fill
+        if num_images > 0:
+            fill_width = int((count / num_images) * progress_bar_width)
+            cv2.rectangle(display_frame, (progress_x, progress_y), 
+                         (progress_x + fill_width, progress_y + progress_bar_height), 
+                         (0, 255, 0), -1)
+        
+        # Progress text
+        progress_text = f"Progress: {count}/{num_images} ({int(count/num_images*100)}%)"
+        cv2.putText(display_frame, progress_text, (progress_x + 5, progress_y + 18),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
-        cv2.putText(display_frame, f"Worker: {worker_name}", (10, 90),
+        cv2.putText(display_frame, f"Worker: {worker_name}", (10, h - 45),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
         # Guide box
@@ -182,7 +231,7 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
             if face_detected:
                 images.append(frame.copy())
                 count += 1
-                print(f"  ✓ Captured image {count}/{num_images}")
+                print(f"  ✓ Captured image {count}/{num_images} - {current_guide}")
 
                 # Flash effect
                 flash = display_frame.copy()
@@ -357,24 +406,12 @@ def main():
         """, (worker_id,))
         print("✓ Old encoding deactivated")
 
-    # Ask number of images
+    # Mandatory 10 images for best quality
+    num_images = 10
     print("\n" + "=" * 80)
-    while True:
-        try:
-            num_images = input("How many training images? (3-10, recommended 5): ").strip()
-            num_images = int(num_images)
-            
-            if num_images < 3:
-                print("❌ Minimum 3 images required!")
-                continue
-            if num_images > 10:
-                print("❌ Maximum 10 images allowed!")
-                continue
-            
-            break
-        except ValueError:
-            print("❌ Invalid input! Please enter a number between 3-10")
-            continue
+    print(f"  TRAINING: {num_images} images will be captured")
+    print("  This ensures the best recognition accuracy!")
+    print("=" * 80)
 
     # Capture images
     images = capture_training_images(worker_id, worker_name, num_images)
