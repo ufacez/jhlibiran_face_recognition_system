@@ -120,6 +120,13 @@ class FaceRecognizer:
         # Get encodings for detected faces
         face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
         
+        # Get facial landmarks for mesh visualization
+        face_landmarks_list = []
+        try:
+            face_landmarks_list = face_recognition.face_landmarks(rgb_frame)
+        except Exception:
+            pass  # Skip on error
+        
         # Scale back to original size
         scale_reciprocal = 1.0 / self.scale_factor
         
@@ -131,7 +138,7 @@ class FaceRecognizer:
         current_face_ids = []
         
         # Process each face
-        for (top, right, bottom, left), encoding in zip(face_locations, face_encodings):
+        for face_idx, ((top, right, bottom, left), encoding) in enumerate(zip(face_locations, face_encodings)):
             # Scale coordinates
             top = int(top * scale_reciprocal)
             right = int(right * scale_reciprocal)
@@ -139,6 +146,28 @@ class FaceRecognizer:
             left = int(left * scale_reciprocal)
             
             current_face_locations.append((top, right, bottom, left))
+            
+            # Draw facial landmarks mesh for this face (if available)
+            if face_idx < len(face_landmarks_list):
+                landmarks = face_landmarks_list[face_idx]
+                for feature_name, points in landmarks.items():
+                    # Scale landmark points to full resolution
+                    scaled_points = [(int(x * scale_reciprocal), int(y * scale_reciprocal)) for x, y in points]
+                    
+                    # Draw lines connecting the points
+                    for i in range(len(scaled_points) - 1):
+                        cv2.line(frame, scaled_points[i], scaled_points[i + 1], (255, 200, 0), 1)
+                    
+                    # Close the loop for certain features
+                    if feature_name in ['chin', 'left_eyebrow', 'right_eyebrow', 
+                                       'nose_bridge', 'left_eye', 'right_eye',
+                                       'top_lip', 'bottom_lip']:
+                        if len(scaled_points) > 2:
+                            cv2.line(frame, scaled_points[-1], scaled_points[0], (255, 200, 0), 1)
+                    
+                    # Draw small dots on key points
+                    for point in scaled_points:
+                        cv2.circle(frame, point, 1, (255, 220, 50), -1)
             
             # Compare with known faces
             matches = face_recognition.compare_faces(

@@ -277,19 +277,35 @@ class AttendanceSystem:
         worker_id = overlay_data.get('worker_id', 0)
         worker_code = overlay_data.get('worker_code', 'N/A')
         timestamp = overlay_data.get('timestamp', datetime.now())
+        action = result.get('action', '')
 
         h, w = frame.shape[:2]
         banner_h = 90
 
         if result.get('success'):
-            color = (10, 110, 10)
-            title = "RECORDED"
-            detail = f"{worker_name} (ID: {worker_id})"
-            time_str = timestamp.strftime('%I:%M %p')
-            detail2 = f"Code: {worker_code} | Time: {time_str}"
+            if action == 'timeout':
+                color = (0, 100, 180)  # Blue for time-out
+                title = "TIME-OUT RECORDED"
+                detail = f"{worker_name} ({worker_id})"
+                time_str = timestamp.strftime('%I:%M %p')
+                hours = result.get('hours_worked', 0)
+                detail2 = f"Code: {worker_code} | Out: {time_str} | Hours: {hours}"
+            else:
+                color = (10, 110, 10)  # Green for time-in
+                title = "TIME-IN RECORDED"
+                detail = f"{worker_name} ({worker_id})"
+                time_str = timestamp.strftime('%I:%M %p')
+                detail2 = f"Code: {worker_code} | In: {time_str}"
         else:
             color = (120, 30, 30)
-            title = "ALREADY IN"
+            if action == 'already_in':
+                title = "ALREADY TIMED IN"
+            elif action == 'completed':
+                title = "ALREADY COMPLETED"
+            elif action == 'no_timein':
+                title = "NO TIME-IN RECORD"
+            else:
+                title = "ERROR"
             detail = result.get('message', '')
             detail2 = ""
 
@@ -306,8 +322,10 @@ class AttendanceSystem:
     def _process_attendance(self, worker_info: Dict[str, Any]) -> Dict[str, Any]:
         """Process attendance"""
         worker_id = worker_info['worker_id']
+        worker_name = f"{worker_info.get('first_name','')} {worker_info.get('last_name','')}"
 
         if self.timeout_mode:
+            logger.info(f"Processing TIME-OUT for: {worker_name} (ID: {worker_id})")
             result = self.attendance_logger.log_timeout(worker_id)
             if result.get('success'):
                 self.timeout_mode = False
@@ -315,8 +333,16 @@ class AttendanceSystem:
                     self.gpio.set_led(False)
                 except Exception:
                     pass
+                logger.info(f"✅ TIME-OUT SUCCESS: {worker_name} - Hours: {result.get('hours_worked', 0)}")
+            else:
+                logger.warning(f"❌ TIME-OUT FAILED: {worker_name} - {result.get('message', 'Unknown error')}")
         else:
+            logger.info(f"Processing TIME-IN for: {worker_name} (ID: {worker_id})")
             result = self.attendance_logger.log_timein(worker_id)
+            if result.get('success'):
+                logger.info(f"✅ TIME-IN SUCCESS: {worker_name} at {result.get('time_in', 'N/A')}")
+            else:
+                logger.warning(f"❌ TIME-IN FAILED: {worker_name} - {result.get('message', 'Unknown error')}")
 
         return result
 
@@ -344,8 +370,19 @@ class AttendanceSystem:
             self.gpio.set_led(self.timeout_mode)
         except Exception:
             pass
-        mode_text = "TIME-OUT MODE" if self.timeout_mode else "TIME-IN MODE"
-        logger.info(mode_text)
+        
+        if self.timeout_mode:
+            mode_text = "🔴 SWITCHED TO TIME-OUT MODE"
+            logger.info("=" * 60)
+            logger.info(mode_text)
+            logger.info("Next scan will record TIME-OUT")
+            logger.info("=" * 60)
+        else:
+            mode_text = "🟢 SWITCHED TO TIME-IN MODE"
+            logger.info("=" * 60)
+            logger.info(mode_text)
+            logger.info("Next scan will record TIME-IN")
+            logger.info("=" * 60)
 
     def _handle_timeout_button(self):
         """GPIO button callback"""

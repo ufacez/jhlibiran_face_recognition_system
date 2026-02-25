@@ -68,28 +68,41 @@ class AttendanceLogger:
         
         # Insert time-in
         time_in = now.strftime('%H:%M:%S')
+        attendance_id = None
         
         if self.mysql_db.is_connected:
-            # Direct to MySQL
-            query = """
-                INSERT INTO attendance 
-                (worker_id, attendance_date, time_in, status)
-                VALUES (%s, %s, %s, 'present')
-            """
-            attendance_id = self.mysql_db.execute_query(query, (worker_id, today, time_in))
-            
-            if attendance_id:
-                # Log activity (skip if fails)
-                try:
-                    self.mysql_db.execute_query("""
-                        INSERT INTO activity_logs 
-                        (action, table_name, record_id, description, ip_address)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, ('clock_in', 'attendance', attendance_id, 'Facial recognition time-in', 'raspberry_pi'))
-                except Exception as e:
-                    logger.warning(f"Activity log failed: {e}")
-        else:
-            # Buffer to SQLite
+            # Direct to MySQL with proper transaction
+            try:
+                query = """
+                    INSERT INTO attendance 
+                    (worker_id, attendance_date, time_in, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, 'present', NOW(), NOW())
+                """
+                attendance_id = self.mysql_db.execute_query(query, (worker_id, today, time_in))
+                
+                if attendance_id:
+                    # Log activity - ENSURE THIS IS LOGGED ONCE
+                    try:
+                        activity_query = """
+                            INSERT INTO activity_logs 
+                            (action, table_name, record_id, description, ip_address, created_at)
+                            VALUES (%s, %s, %s, %s, %s, NOW())
+                        """
+                        self.mysql_db.execute_query(
+                            activity_query,
+                            ('clock_in', 'attendance', attendance_id, 
+                             f'Worker {worker_id} clocked in via facial recognition', 
+                             'facial_recognition_system')
+                        )
+                        logger.info(f"Activity logged: Time-in for worker {worker_id}")
+                    except Exception as e:
+                        logger.error(f"Activity log failed for time-in: {e}")
+            except Exception as e:
+                logger.error(f"Time-in insert failed: {e}")
+                # Fall through to SQLite buffer
+        
+        if not attendance_id:
+            # Buffer to SQLite if MySQL failed or not connected
             attendance_id = self.sqlite_db.insert_attendance(
                 worker_id, today, time_in=time_in
             )
@@ -163,15 +176,22 @@ class AttendanceLogger:
                 WHERE attendance_id = %s
             """, (time_out, hours_worked, record['attendance_id']))
             
-            # Log activity (skip if fails)
+            # Log activity - ENSURE THIS IS LOGGED ONCE
             try:
-                self.mysql_db.execute_query("""
+                activity_query = """
                     INSERT INTO activity_logs 
-                    (action, table_name, record_id, description, ip_address)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, ('clock_out', 'attendance', record['attendance_id'], 'Facial recognition time-out', 'raspberry_pi'))
+                    (action, table_name, record_id, description, ip_address, created_at)
+                    VALUES (%s, %s, %s, %s, %s, NOW())
+                """
+                self.mysql_db.execute_query(
+                    activity_query,
+                    ('clock_out', 'attendance', record['attendance_id'],
+                     f'Worker {worker_id} clocked out via facial recognition. Hours worked: {round(hours_worked, 2)}',
+                     'facial_recognition_system')
+                )
+                logger.info(f"Activity logged: Time-out for worker {worker_id}, hours: {round(hours_worked, 2)}")
             except Exception as e:
-                logger.warning(f"Activity log failed: {e}")
+                logger.error(f"Activity log failed for time-out: {e}")
         else:
             # Buffer to SQLite
             hours_worked = 8.0  # Default estimate

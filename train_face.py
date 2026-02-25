@@ -119,13 +119,42 @@ def capture_training_images(worker_id: int, worker_name: str, num_images: int = 
 
         face_detected = len(face_locations) > 0
 
-        # Draw face boxes
+        # Draw face boxes and landmarks
         for (top, right, bottom, left) in face_locations:
             cv2.rectangle(display_frame, (left, top), (right, bottom), (0, 255, 0), 3)
+        
+        # Draw facial landmarks mesh for tracking feedback
+        if frame_counter % DETECT_INTERVAL == 0 and face_detected:
+            try:
+                face_landmarks_list = face_recognition.face_landmarks(rgb_frame)
+                
+                for face_landmarks in face_landmarks_list:
+                    # Draw facial feature points
+                    for feature_name, points in face_landmarks.items():
+                        # Draw lines connecting the points
+                        for i in range(len(points) - 1):
+                            cv2.line(display_frame, points[i], points[i + 1], (0, 255, 255), 1)
+                        # Close the loop for certain features
+                        if feature_name in ['chin', 'left_eyebrow', 'right_eyebrow', 
+                                           'nose_bridge', 'left_eye', 'right_eye',
+                                           'top_lip', 'bottom_lip']:
+                            if len(points) > 2:
+                                cv2.line(display_frame, points[-1], points[0], (0, 255, 255), 1)
+                        
+                        # Draw small circles on key points
+                        for point in points:
+                            cv2.circle(display_frame, point, 1, (0, 200, 255), -1)
+            except Exception as e:
+                # Skip landmark detection on error
+                pass
 
         # Status overlay - NO EMOJIS
-        status_text = "FACE DETECTED - Press SPACE" if face_detected else "NO FACE - Position yourself"
-        status_color = (0, 255, 0) if face_detected else (0, 0, 255)
+        if face_detected:
+            status_text = "FACE TRACKED - Press SPACE to capture"
+            status_color = (0, 255, 0)
+        else:
+            status_text = "NO FACE - Position yourself"
+            status_color = (0, 0, 255)
 
         cv2.putText(display_frame, status_text, (10, 30),
                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, status_color, 2)
@@ -305,7 +334,7 @@ def main():
     print("\n" + "=" * 80)
     print(f"  SELECTED WORKER")
     print("=" * 80)
-    print(f"  ID:       {worker_id}")
+    print(f"  Worker:   {worker_id}")
     print(f"  Name:     {worker_name}")
     print(f"  Code:     {worker_code}")
     print(f"  Position: {selected_worker['position']}")
@@ -365,7 +394,7 @@ def main():
         print("  ✅ FACE TRAINING SUCCESSFUL!")
         print("=" * 80)
         print(f"  Worker: {worker_name}")
-        print(f"  ID:     {worker_id}")
+        print(f"  Number: {worker_id}")
         print(f"  Code:   {worker_code}")
         print(f"  Images: {len(images)}")
         print("=" * 80)
