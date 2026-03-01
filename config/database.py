@@ -139,7 +139,16 @@ class SQLiteDatabase:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
+        # Device configuration cache
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS device_config (
+                key TEXT PRIMARY KEY,
+                value TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
         conn.commit()
         conn.close()
         logger.info("SQLite initialized")
@@ -247,13 +256,55 @@ class SQLiteDatabase:
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
+
         cursor.execute("""
-            SELECT * FROM face_encodings_cache 
+            SELECT * FROM face_encodings_cache
             WHERE is_active = 1
         """)
-        
+
         encodings = [dict(row) for row in cursor.fetchall()]
         conn.close()
-        
+
         return encodings
+
+    def get_today_attendance(
+        self, worker_id: int, today: str
+    ) -> Optional[Dict[str, Any]]:
+        """Get today's attendance from local buffer (offline mode)."""
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id AS attendance_id, worker_id,
+                   attendance_date, time_in, time_out,
+                   status, hours_worked
+            FROM attendance_buffer
+            WHERE worker_id = ? AND attendance_date = ?
+            ORDER BY created_at DESC LIMIT 1
+        """, (worker_id, today))
+
+        row = cursor.fetchone()
+        conn.close()
+        return dict(row) if row else None
+
+    def get_device_config(self, key: str) -> Optional[str]:
+        """Get a device configuration value."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT value FROM device_config WHERE key = ?", (key,))
+        row = cursor.fetchone()
+        conn.close()
+        return row[0] if row else None
+
+    def set_device_config(self, key: str, value: str) -> None:
+        """Set a device configuration value."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT OR REPLACE INTO device_config (key, value, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+        """, (key, value))
+        conn.commit()
+        conn.close()
