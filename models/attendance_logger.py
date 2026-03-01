@@ -68,6 +68,7 @@ class AttendanceLogger:
         
         # Insert time-in
         time_in = now.strftime('%H:%M:%S')
+        time_in_12hr = now.strftime('%I:%M %p')
         attendance_id = None
         
         if self.mysql_db.is_connected:
@@ -81,22 +82,31 @@ class AttendanceLogger:
                 attendance_id = self.mysql_db.execute_query(query, (worker_id, today, time_in))
                 
                 if attendance_id:
-                    # Log activity - ENSURE THIS IS LOGGED ONCE
+                    # Log to audit_trail for website audit page - Biometric Time In
                     try:
-                        activity_query = """
-                            INSERT INTO activity_logs 
-                            (action, table_name, record_id, description, ip_address, created_at)
-                            VALUES (%s, %s, %s, %s, %s, NOW())
-                        """
-                        self.mysql_db.execute_query(
-                            activity_query,
-                            ('clock_in', 'attendance', attendance_id, 
-                             f'Worker {worker_id} clocked in via facial recognition', 
-                             'facial_recognition_system')
+                        import json as _json
+                        worker_info = self.mysql_db.fetch_one(
+                            "SELECT first_name, last_name, worker_code FROM workers WHERE worker_id = %s",
+                            (worker_id,)
                         )
-                        logger.info(f"Activity logged: Time-in for worker {worker_id}")
+                        w_name = f"{worker_info['first_name']} {worker_info['last_name']}" if worker_info else f'Worker {worker_id}'
+                        w_code = worker_info['worker_code'] if worker_info else 'N/A'
+                        self.mysql_db.execute_query("""
+                            INSERT INTO audit_trail 
+                            (user_id, username, user_level, action_type, module, table_name,
+                             record_id, record_identifier, old_values, new_values, changes_summary,
+                             ip_address, user_agent, severity, is_sensitive, success)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            None, w_name, 'worker', 'time_in', 'attendance', 'attendance',
+                            attendance_id, f'{w_name} ({w_code})', None,
+                            _json.dumps({'worker_id': worker_id, 'time_in': time_in, 'date': today}),
+                            f'Biometric Time In - {w_name} clocked in via facial recognition at {time_in_12hr}',
+                            'facial_recognition_system', 'FacialRecognitionDevice', 'low', 0, 1
+                        ))
+                        logger.info(f"Audit trail logged: Biometric Time In for worker {worker_id}")
                     except Exception as e:
-                        logger.error(f"Activity log failed for time-in: {e}")
+                        logger.error(f"Audit trail failed for biometric time-in: {e}")
             except Exception as e:
                 logger.error(f"Time-in insert failed: {e}")
                 # Fall through to SQLite buffer
@@ -133,6 +143,7 @@ class AttendanceLogger:
         today = date.today().isoformat()
         now = datetime.now()
         time_out = now.strftime('%H:%M:%S')
+        time_out_12hr = now.strftime('%I:%M %p')
         
         # Find today's time-in
         if self.mysql_db.is_connected:
@@ -192,22 +203,32 @@ class AttendanceLogger:
                 WHERE attendance_id = %s
             """, (time_out, hours_worked, record['attendance_id']))
             
-            # Log activity - ENSURE THIS IS LOGGED ONCE
+            # Log to audit_trail for website audit page - Biometric Time Out
             try:
-                activity_query = """
-                    INSERT INTO activity_logs 
-                    (action, table_name, record_id, description, ip_address, created_at)
-                    VALUES (%s, %s, %s, %s, %s, NOW())
-                """
-                self.mysql_db.execute_query(
-                    activity_query,
-                    ('clock_out', 'attendance', record['attendance_id'],
-                     f'Worker {worker_id} clocked out via facial recognition. Hours worked: {round(hours_worked, 2)}',
-                     'facial_recognition_system')
+                import json as _json
+                worker_info = self.mysql_db.fetch_one(
+                    "SELECT first_name, last_name, worker_code FROM workers WHERE worker_id = %s",
+                    (worker_id,)
                 )
-                logger.info(f"Activity logged: Time-out for worker {worker_id}, hours: {round(hours_worked, 2)}")
+                w_name = f"{worker_info['first_name']} {worker_info['last_name']}" if worker_info else f'Worker {worker_id}'
+                w_code = worker_info['worker_code'] if worker_info else 'N/A'
+                self.mysql_db.execute_query("""
+                    INSERT INTO audit_trail 
+                    (user_id, username, user_level, action_type, module, table_name,
+                     record_id, record_identifier, old_values, new_values, changes_summary,
+                     ip_address, user_agent, severity, is_sensitive, success)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    None, w_name, 'worker', 'time_out', 'attendance', 'attendance',
+                    record['attendance_id'], f'{w_name} ({w_code})',
+                    _json.dumps({'time_in': str(record['time_in'])}),
+                    _json.dumps({'worker_id': worker_id, 'time_out': time_out, 'hours_worked': round(hours_worked, 2), 'date': today}),
+                    f'Biometric Time Out - {w_name} clocked out via facial recognition at {time_out_12hr}. Hours: {round(hours_worked, 2)}',
+                    'facial_recognition_system', 'FacialRecognitionDevice', 'low', 0, 1
+                ))
+                logger.info(f"Audit trail logged: Biometric Time Out for worker {worker_id}")
             except Exception as e:
-                logger.error(f"Activity log failed for time-out: {e}")
+                logger.error(f"Audit trail failed for biometric time-out: {e}")
         else:
             # Buffer to SQLite
             hours_worked = 8.0  # Default estimate

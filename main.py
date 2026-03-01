@@ -301,23 +301,23 @@ class AttendanceSystem:
             if action == 'already_in':
                 title = "ALREADY SCANNED"
                 detail = f"{worker_name} ({worker_id})"
-                detail2 = \"Attendance already recorded today\"
+                detail2 = "Attendance already recorded today"
             elif action == 'completed':
                 title = "ALREADY COMPLETE"
-                detail = f\"{worker_name} ({worker_id})\"
-                detail2 = \"Time in and out completed\"
+                detail = f"{worker_name} ({worker_id})"
+                detail2 = "Time in and out completed"
             elif action == 'duplicate':
-                title = \"ALREADY SCANNED\"
+                title = "ALREADY SCANNED"
                 detail = result.get('message', '')
-                detail2 = \"Please wait before scanning again\"
+                detail2 = "Please wait before scanning again"
             elif action == 'error':
-                title = \"SYSTEM MESSAGE\"
+                title = "SYSTEM MESSAGE"
                 detail = result.get('message', '')
-                detail2 = \"\"
+                detail2 = ""
             else:
-                title = \"NOTIFICATION\"
+                title = "NOTIFICATION"
                 detail = result.get('message', '')
-                detail2 = \"\"
+                detail2 = ""
 
         # Solid banner
         cv2.rectangle(frame, (0, 0), (w, banner_h), color, -1)

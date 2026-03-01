@@ -437,6 +437,26 @@ def main():
         print("=" * 80)
         print(f"\n✓ {worker_name} can now use facial recognition for attendance")
         
+        # Log to audit_trail for website audit page - Biometric Registration
+        try:
+            import json as _json
+            mysql_db.execute_query("""
+                INSERT INTO audit_trail 
+                (user_id, username, user_level, action_type, module, table_name,
+                 record_id, record_identifier, old_values, new_values, changes_summary,
+                 ip_address, user_agent, severity, is_sensitive, success)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                None, 'Biometric System', 'super_admin', 'create', 'biometric', 'face_encodings',
+                worker_id, f'{worker_name} ({worker_code})', None,
+                _json.dumps({'worker_id': worker_id, 'worker_name': worker_name, 'images_captured': len(images)}),
+                f'Biometric Registration - Face registered for {worker_name} ({worker_code}) with {len(images)} images',
+                'facial_recognition_system', 'FacialRecognitionDevice', 'medium', 0, 1
+            ))
+            print("✓ Audit trail logged: Biometric face registration")
+        except Exception as e:
+            print(f"⚠ Audit trail log failed: {e}")
+        
         # Ask if user wants to train another worker
         print("\n" + "=" * 80)
         another = input("Train another worker? (yes/no): ").strip().lower()
