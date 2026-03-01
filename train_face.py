@@ -34,17 +34,16 @@ def list_workers(mysql_db: MySQLDatabase):
         print("Please add workers through the web dashboard first.")
         return []
     
-    print(f"\n{'#':<5} {'ID':<8} {'Code':<12} {'Name':<30} {'Position':<20} {'Status':<10}")
-    print("-" * 80)
+    print(f"\n{'#':<5} {'Code':<12} {'Name':<30} {'Position':<20} {'Status':<10}")
+    print("-" * 72)
     
     for idx, worker in enumerate(workers, 1):
-        worker_id = worker['worker_id']
         code = worker['worker_code']
         name = f"{worker['first_name']} {worker['last_name']}"
         position = worker['position'] or 'N/A'
         status = worker['employment_status']
         
-        print(f"{idx:<5} {worker_id:<8} {code:<12} {name:<30} {position:<20} {status:<10}")
+        print(f"{idx:<5} {code:<12} {name:<30} {position:<20} {status:<10}")
     
     print("=" * 80)
     return workers
@@ -383,7 +382,6 @@ def main():
     print("\n" + "=" * 80)
     print(f"  SELECTED WORKER")
     print("=" * 80)
-    print(f"  Worker:   {worker_id}")
     print(f"  Name:     {worker_name}")
     print(f"  Code:     {worker_code}")
     print(f"  Position: {selected_worker['position']}")
