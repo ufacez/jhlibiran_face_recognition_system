@@ -584,8 +584,8 @@ class AttendanceApp:
 
         self.stab_name_label = tk.Label(
             stab_card, text="No face detected",
-            font=(FONT, 14, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w')
+            font=(FONT, 13, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
+            anchor='w', wraplength=370, justify='left')
         self.stab_name_label.pack(fill='x', padx=14)
 
         # Progress bar
@@ -600,7 +600,7 @@ class AttendanceApp:
         self.stab_text_label = tk.Label(
             stab_card, text="Waiting for worker...",
             font=(FONT, 10), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w')
+            anchor='w', wraplength=370, justify='left')
         self.stab_text_label.pack(fill='x', padx=14, pady=(0, 12))
 
         # ── Quick Stats ──────────────────────────────────
@@ -836,22 +836,25 @@ class AttendanceApp:
                         COALESCE(a.hours_worked, 0) as hours_worked,
                         COALESCE(wt.work_type_name, w.position, 'N/A') as role,
                         COALESCE(wc.classification_name, 'N/A') as classification,
-                        s.start_time,
-                        s.end_time
+                        COALESCE(ds.start_time, s.start_time) as start_time,
+                        COALESCE(ds.end_time, s.end_time) as end_time
                     FROM attendance a
                     JOIN workers w ON a.worker_id = w.worker_id
                     JOIN project_workers pw ON w.worker_id = pw.worker_id
                     LEFT JOIN work_types wt ON w.work_type_id = wt.work_type_id
                     LEFT JOIN worker_classifications wc ON wt.classification_id = wc.classification_id
+                    LEFT JOIN daily_schedules ds ON w.worker_id = ds.worker_id 
+                        AND ds.schedule_date = %s AND ds.is_active = 1 AND ds.is_rest_day = 0
                     LEFT JOIN schedules s ON w.worker_id = s.worker_id 
                         AND s.day_of_week = %s AND s.is_active = 1
+                        AND ds.daily_schedule_id IS NULL
                     WHERE a.attendance_date = %s
                     AND a.is_archived = 0
                     AND pw.project_id = %s
                     AND pw.is_active = 1
                     GROUP BY a.attendance_id
                     ORDER BY a.created_at DESC
-                """, (day_name, today_str, project_id))
+                """, (today_str, day_name, today_str, project_id))
             else:
                 records = self.mysql_db.fetch_all("""
                     SELECT 
@@ -863,19 +866,22 @@ class AttendanceApp:
                         COALESCE(a.hours_worked, 0) as hours_worked,
                         COALESCE(wt.work_type_name, w.position, 'N/A') as role,
                         COALESCE(wc.classification_name, 'N/A') as classification,
-                        s.start_time,
-                        s.end_time
+                        COALESCE(ds.start_time, s.start_time) as start_time,
+                        COALESCE(ds.end_time, s.end_time) as end_time
                     FROM attendance a
                     JOIN workers w ON a.worker_id = w.worker_id
                     LEFT JOIN work_types wt ON w.work_type_id = wt.work_type_id
                     LEFT JOIN worker_classifications wc ON wt.classification_id = wc.classification_id
+                    LEFT JOIN daily_schedules ds ON w.worker_id = ds.worker_id 
+                        AND ds.schedule_date = %s AND ds.is_active = 1 AND ds.is_rest_day = 0
                     LEFT JOIN schedules s ON w.worker_id = s.worker_id 
                         AND s.day_of_week = %s AND s.is_active = 1
+                        AND ds.daily_schedule_id IS NULL
                     WHERE a.attendance_date = %s
                     AND a.is_archived = 0
                     GROUP BY a.attendance_id
                     ORDER BY a.created_at DESC
-                """, (day_name, today_str))
+                """, (today_str, day_name, today_str))
 
             self.attendance_records = records if records else []
             self._update_attendance_table()
@@ -1044,23 +1050,6 @@ class AttendanceApp:
             cv2.putText(frame, label, (left, label_y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
 
-            # Facial landmarks mesh
-            for feature_name, points in landmarks.items():
-                for i in range(len(points) - 1):
-                    cv2.line(
-                        frame, points[i], points[i + 1],
-                        (255, 200, 0), 1)
-                if feature_name in (
-                    'left_eye', 'right_eye',
-                    'top_lip', 'bottom_lip'
-                ):
-                    if len(points) > 2:
-                        cv2.line(
-                            frame, points[-1], points[0],
-                            (255, 200, 0), 1)
-                for pt in points:
-                    cv2.circle(frame, pt, 1, (255, 220, 50), -1)
-
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   STABILITY TRACKING & ATTENDANCE TRIGGER
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1131,6 +1120,9 @@ class AttendanceApp:
         self, name: str, progress: float,
         text: str, color: str
     ):
+        # Don't overwrite active notification (e.g. TIME IN / TIME OUT result)
+        if time.time() < self.notification_expiry:
+            return
         try:
             self.stab_name_label.config(text=name, fg=color)
             self.stab_bar_fill.config(bg=color)
