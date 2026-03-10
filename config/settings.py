@@ -41,7 +41,7 @@ class Config:
     #   MIN_WORK_INTERVAL   — Minimum minutes between Time In and Time Out
     STABILITY_SECONDS: float = float(os.getenv('STABILITY_SECONDS', '3.0'))
     COOLDOWN_SECONDS: float = float(os.getenv('COOLDOWN_SECONDS', '60.0'))
-    MIN_WORK_INTERVAL_MINUTES: int = int(os.getenv('MIN_WORK_INTERVAL', '30'))
+    MIN_WORK_INTERVAL_MINUTES: int = int(os.getenv('MIN_WORK_INTERVAL', '0'))
     DUPLICATE_TIMEOUT_SECONDS: int = 30
 
     # ── Synchronization ──────────────────────────────────────

@@ -112,6 +112,8 @@ class FaceRegistrationApp:
         self.current_raw_frame = None
         self.photo_image = None          # prevent GC
         self.search_entry = None         # reference for focus check
+        self.capture_flash_until = 0     # timestamp for flash overlay
+        self.thumbnail_images = []       # prevent GC of thumbnails
 
         # ── Build UI ───────────────────────────────
         self._build_header()
@@ -597,8 +599,8 @@ class FaceRegistrationApp:
             self._set_status("Camera error!", DANGER)
             return
 
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
         # Swap buttons: hide Start, show Capture + Cancel
         self.start_btn.pack_forget()
@@ -608,9 +610,14 @@ class FaceRegistrationApp:
 
         # Show progress row + bar
         self.progress_frame.pack(fill='x', pady=(0, 8))
-        self.progress_bar_frame.pack(fill='x', pady=(0, 10))
+        self.progress_bar_frame.pack(fill='x', pady=(0, 6))
         self.progress_bar_fill.place(x=0, y=0, relheight=1.0, relwidth=0.0)
         self._update_progress()
+
+        # Thumbnail strip for captured images
+        self.thumbnail_frame = tk.Frame(controls, bg=CARD)
+        self.thumbnail_frame.pack(fill='x', pady=(0, 8))
+        self.thumbnail_images = []
 
         # Show camera label
         self.camera_label.pack(fill='both', expand=True)
@@ -645,10 +652,6 @@ class FaceRegistrationApp:
                  int(b / scale), int(l / scale))
                 for t, r, b, l in locs
             ]
-            try:
-                self.face_landmarks = face_recognition.face_landmarks(rgb)
-            except Exception:
-                self.face_landmarks = []
 
         face_detected = len(self.face_locations) > 0
 
@@ -657,34 +660,52 @@ class FaceRegistrationApp:
             color = (0, 255, 0) if face_detected else (0, 0, 255)
             cv2.rectangle(display, (left, top), (right, bottom), color, 3)
 
-        # Draw facial landmarks mesh
-        if self.face_landmarks:
-            for face_lm in self.face_landmarks:
-                for feature, points in face_lm.items():
-                    for i in range(len(points) - 1):
-                        cv2.line(display, points[i], points[i + 1],
-                                 (0, 255, 255), 1)
-                    if feature in ['left_eye', 'right_eye',
-                                   'top_lip', 'bottom_lip']:
-                        if len(points) > 2:
-                            cv2.line(display, points[-1], points[0],
-                                     (0, 255, 255), 1)
-                    for pt in points:
-                        cv2.circle(display, pt, 1, (0, 200, 255), -1)
-
         # Overlay text
         h, w = display.shape[:2]
+        
+        # Position guide overlay — large text at bottom center
+        count = len(self.captured_images)
+        if count < len(POSITION_GUIDES):
+            guide_text = POSITION_GUIDES[count]
+        else:
+            guide_text = "Look FORWARD"
+        
+        # Dark banner at bottom for guide
+        overlay = display.copy()
+        cv2.rectangle(overlay, (0, h - 70), (w, h), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.6, display, 0.4, 0, display)
+        
+        # Guide text
+        text_size = cv2.getTextSize(guide_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
+        text_x = (w - text_size[0]) // 2
+        cv2.putText(display, guide_text, (text_x, h - 40),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 215, 255), 2)
+        
+        # Capture counter — top right
+        counter_text = f"{count}/{NUM_CAPTURES}"
+        cv2.putText(display, counter_text, (w - 120, 35),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+        
+        # Face detection status — top left
         if face_detected:
             cv2.putText(display, "FACE DETECTED", (10, 28),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            cv2.putText(display, "Press SPACE to capture", (10, 52),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         else:
-            cv2.putText(display, "NO FACE — Position yourself", (10, 28),
+            cv2.putText(display, "NO FACE - Position yourself", (10, 28),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         # Face guide oval
         cx, cy = w // 2, h // 2
-        cv2.ellipse(display, (cx, cy), (int(w * 0.18), int(h * 0.32)),
+        cv2.ellipse(display, (cx, cy - 20), (int(w * 0.15), int(h * 0.30)),
                     0, 0, 360, (180, 180, 180), 2)
+
+        # Capture flash effect — white border overlay
+        if time.time() < self.capture_flash_until:
+            cv2.rectangle(display, (0, 0), (w - 1, h - 1), (255, 255, 255), 12)
+            cv2.putText(display, "CAPTURED!", ((w - 200) // 2, h // 2),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
 
         # Enable/disable capture button
         try:
@@ -721,20 +742,35 @@ class FaceRegistrationApp:
 
         self.captured_images.append(self.current_raw_frame.copy())
         self._update_progress()
+        self._add_thumbnail(self.current_raw_frame)
 
         count = len(self.captured_images)
         self._set_status(f"Captured {count}/{NUM_CAPTURES}", SUCCESS)
 
-        # Quick flash effect
-        try:
-            self.camera_label.config(bg='white')
-            self.root.after(80, lambda: self.camera_label.config(bg='#000'))
-        except tk.TclError:
-            pass
+        # Flash effect — overlay on video feed
+        self.capture_flash_until = time.time() + 0.25
 
         if count >= NUM_CAPTURES:
             self._stop_camera()
             self._process_training()
+
+    def _add_thumbnail(self, frame):
+        """Add a small thumbnail of the captured frame to the strip."""
+        try:
+            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            pil = Image.fromarray(rgb).resize((52, 40), Image.LANCZOS)
+            tk_img = ImageTk.PhotoImage(pil)
+            self.thumbnail_images.append(tk_img)  # prevent GC
+            
+            idx = len(self.captured_images)
+            thumb = tk.Frame(self.thumbnail_frame, bg=SUCCESS, padx=2, pady=2)
+            thumb.pack(side='left', padx=(0, 4))
+            lbl = tk.Label(thumb, image=tk_img, bg='#000')
+            lbl.pack()
+            tk.Label(self.thumbnail_frame, text=str(idx), font=(FONT, 8),
+                     fg=TEXT_SEC, bg=CARD).pack(side='left', padx=(0, 6))
+        except Exception:
+            pass
 
     def _update_progress(self):
         count = len(self.captured_images)
