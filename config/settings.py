@@ -62,7 +62,7 @@ class Config:
     FULLSCREEN: bool = os.getenv('FULLSCREEN', 'false').lower() == 'true'
     WINDOW_WIDTH: int = int(os.getenv('WINDOW_WIDTH', '1280'))
     WINDOW_HEIGHT: int = int(os.getenv('WINDOW_HEIGHT', '800'))
-    DISPLAY_FEEDBACK_SECONDS: int = 5
+    DISPLAY_FEEDBACK_SECONDS: int = 8
 
     # ── Attendance Logic (legacy compat) ──────────────────────
     AUTO_TIMEOUT_ENABLED: bool = True

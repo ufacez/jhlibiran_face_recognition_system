@@ -308,3 +308,14 @@ class SQLiteDatabase:
         """, (key, value))
         conn.commit()
         conn.close()
+
+    def set_device_config(self, key: str, value: str) -> None:
+        """Set a device configuration value."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT OR REPLACE INTO device_config (key, value, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+        """, (key, value))
+        conn.commit()
+        conn.close()

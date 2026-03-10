@@ -9,6 +9,8 @@ Features:
   • Anti-accidental safeguards (stability check, cooldown, min interval)
   • Offline-first local SQLite with automatic sync
   • Per-project worker filtering
+  • Attendance records display with worker details
+  • Project selection at startup
 
 Controls:
   F   — Toggle fullscreen
@@ -31,7 +33,7 @@ import time
 import sys
 import os
 import logging
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Optional, Dict, Any, List
 
 # Ensure correct working directory (for .env loading)
@@ -154,7 +156,7 @@ class AttendanceApp:
         self.root.title("TrackSite — Attendance System")
         self.root.configure(bg=BG)
         self.root.geometry(f"{Config.WINDOW_WIDTH}x{Config.WINDOW_HEIGHT}")
-        self.root.minsize(960, 600)
+        self.root.minsize(1280, 700)
 
         # ── State ─────────────────────────────────────────
         self.mysql_db: Optional[MySQLDatabase] = None
@@ -184,6 +186,20 @@ class AttendanceApp:
         self.photo_image = None
         self.project_name = ''
         self.encoding_count = 0
+        
+        # Selected project
+        self.selected_project_id: Optional[int] = None
+        
+        # Attendance records cache
+        self.attendance_records: List[Dict[str, Any]] = []
+
+        # ── Initialize databases first for project selection ─
+        self._init_databases()
+        
+        # ── Show project selection dialog ─────────────────
+        if not self._show_project_selection():
+            self.root.destroy()
+            return
 
         # ── Build UI ──────────────────────────────────────
         self._build_header()
@@ -223,7 +239,242 @@ class AttendanceApp:
             target=self._sync_worker, daemon=True)
         self.sync_thread.start()
 
+        # Attendance refresh thread
+        self.attendance_refresh_thread = threading.Thread(
+            target=self._attendance_refresh_worker, daemon=True)
+        self.attendance_refresh_thread.start()
+
         self._camera_loop()
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    #   DATABASE INITIALIZATION
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def _init_databases(self):
+        """Initialize database connections."""
+        self.mysql_db = MySQLDatabase()
+        self.sqlite_db = SQLiteDatabase()
+
+        try:
+            self.mysql_db.connect()
+        except Exception:
+            pass
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    #   PROJECT SELECTION DIALOG
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def _load_saved_project(self) -> Optional[int]:
+        """Load previously saved project ID from local config."""
+        try:
+            saved = self.sqlite_db.get_device_config('selected_project_id')
+            if saved:
+                return int(saved)
+        except Exception:
+            pass
+        return None
+
+    def _save_project_selection(self, project_id: int) -> None:
+        """Save selected project ID to local config."""
+        try:
+            self.sqlite_db.set_device_config('selected_project_id', str(project_id))
+            logger.info(f"Saved project ID: {project_id}")
+        except Exception as e:
+            logger.error(f"Failed to save project selection: {e}")
+
+    def _show_project_selection(self, force: bool = False) -> bool:
+        """Show project selection dialog. Returns True if project selected."""
+        if not self.mysql_db or not self.mysql_db.is_connected:
+            # If no MySQL, use config PROJECT_ID or saved project
+            saved_project = self._load_saved_project()
+            if saved_project:
+                self.selected_project_id = saved_project
+                return True
+            if Config.PROJECT_ID:
+                self.selected_project_id = Config.PROJECT_ID
+                return True
+            messagebox.showerror(
+                "Connection Error",
+                "Cannot connect to database.\nPlease check your connection.")
+            return False
+
+        # Check for saved project (skip dialog if not forced)
+        if not force:
+            saved_project = self._load_saved_project()
+            if saved_project:
+                # Verify project still exists and is active
+                project = self.mysql_db.fetch_one("""
+                    SELECT project_id FROM projects 
+                    WHERE project_id = %s AND is_archived = 0 AND status = 'active'
+                """, (saved_project,))
+                if project:
+                    self.selected_project_id = saved_project
+                    return True
+
+        # Fetch active projects
+        projects = self.mysql_db.fetch_all("""
+            SELECT project_id, project_name, location, status,
+                   (SELECT COUNT(*) FROM project_workers pw 
+                    WHERE pw.project_id = p.project_id AND pw.is_active = 1) as worker_count
+            FROM projects p
+            WHERE is_archived = 0 AND status = 'active'
+            ORDER BY project_name
+        """)
+
+        if not projects:
+            messagebox.showerror(
+                "No Projects",
+                "No active projects found.\nPlease create a project first.")
+            return False
+
+        # Create selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Select Project")
+        dialog.configure(bg=BG)
+        dialog.geometry("500x400")
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Center dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() - 500) // 2
+        y = (dialog.winfo_screenheight() - 400) // 2
+        dialog.geometry(f"500x400+{x}+{y}")
+
+        selected_id = tk.IntVar(value=0)
+        result = {'selected': False}
+
+        # Header
+        header = tk.Frame(dialog, bg=HEADER_BG, height=60)
+        header.pack(fill='x')
+        header.pack_propagate(False)
+
+        tk.Frame(header, bg=GOLD, width=4, height=30).pack(side='left', padx=(20, 10), pady=15)
+        tk.Label(header, text="TrackSite", font=(FONT, 16, 'bold'),
+                 fg=GOLD, bg=HEADER_BG).pack(side='left', pady=15)
+        tk.Label(header, text="Select Project", font=(FONT, 14),
+                 fg=TEXT_SEC, bg=HEADER_BG).pack(side='left', padx=(10, 0), pady=15)
+
+        # Content
+        content = tk.Frame(dialog, bg=BG)
+        content.pack(fill='both', expand=True, padx=20, pady=15)
+
+        tk.Label(content, text="Choose a project to use this device for:",
+                 font=(FONT, 11), fg=TEXT_SEC, bg=BG).pack(anchor='w', pady=(0, 10))
+
+        # Project list with scrollbar
+        list_frame = tk.Frame(content, bg=CARD_BG, highlightthickness=1,
+                              highlightbackground=SEPARATOR)
+        list_frame.pack(fill='both', expand=True)
+
+        canvas = tk.Canvas(list_frame, bg=CARD_BG, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(list_frame, orient='vertical', command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=CARD_BG)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
+        # Make scrollable frame expand to canvas width
+        canvas.bind('<Configure>', lambda e: canvas.itemconfig(
+            canvas_window, width=e.width))
+
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Store radio buttons to update their selection visually
+        radio_buttons = []
+
+        for project in projects:
+            proj_frame = tk.Frame(scrollable_frame, bg=CARD_BG, cursor='hand2')
+            proj_frame.pack(fill='x', padx=10, pady=5)
+
+            rb = tk.Radiobutton(
+                proj_frame, text='', variable=selected_id,
+                value=project['project_id'], bg=CARD_BG,
+                activebackground=CARD_BG, selectcolor=GOLD,
+                highlightthickness=0, bd=0)
+            rb.pack(side='left', padx=(5, 10))
+            radio_buttons.append(rb)
+
+            info_frame = tk.Frame(proj_frame, bg=CARD_BG)
+            info_frame.pack(side='left', fill='x', expand=True, pady=8)
+
+            tk.Label(info_frame, text=project['project_name'],
+                     font=(FONT, 12, 'bold'), fg=TEXT, bg=CARD_BG,
+                     anchor='w').pack(fill='x')
+            
+            location = project.get('location', 'No location')
+            if location and len(location) > 50:
+                location = location[:47] + '...'
+            
+            tk.Label(info_frame, text=f"📍 {location}",
+                     font=(FONT, 9), fg=TEXT_SEC, bg=CARD_BG,
+                     anchor='w').pack(fill='x')
+            
+            tk.Label(info_frame, text=f"👷 {project['worker_count']} workers assigned",
+                     font=(FONT, 9), fg=TEXT_SEC, bg=CARD_BG,
+                     anchor='w').pack(fill='x')
+
+            # Make entire frame clickable - use invoke() on radio button
+            def make_click_handler(radio_btn):
+                def handler(event):
+                    radio_btn.invoke()
+                return handler
+
+            click_handler = make_click_handler(rb)
+            proj_frame.bind('<Button-1>', click_handler)
+            info_frame.bind('<Button-1>', click_handler)
+            for child in info_frame.winfo_children():
+                child.bind('<Button-1>', click_handler)
+
+        canvas.pack(side='left', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
+        
+        # Enable mouse wheel scrolling
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind_all("<MouseWheel>", on_mousewheel)
+
+        # Buttons
+        btn_frame = tk.Frame(dialog, bg=BG)
+        btn_frame.pack(fill='x', padx=20, pady=15)
+
+        def on_cancel():
+            canvas.unbind_all("<MouseWheel>")
+            dialog.destroy()
+
+        def on_select():
+            if selected_id.get() > 0:
+                self.selected_project_id = selected_id.get()
+                self._save_project_selection(self.selected_project_id)
+                result['selected'] = True
+                canvas.unbind_all("<MouseWheel>")
+                dialog.destroy()
+            else:
+                messagebox.showwarning("Select Project", "Please select a project.")
+
+        tk.Button(btn_frame, text="Cancel", font=(FONT, 10),
+                  bg=SEPARATOR, fg=TEXT, width=12, cursor='hand2',
+                  command=on_cancel).pack(side='left')
+
+        select_btn = tk.Button(btn_frame, text="Select Project", font=(FONT, 10, 'bold'),
+                  bg=GOLD, fg=HEADER_BG, width=15, cursor='hand2',
+                  command=on_select)
+        select_btn.pack(side='right')
+
+        # Bind Enter key to select
+        dialog.bind('<Return>', lambda e: on_select())
+        dialog.bind('<KP_Enter>', lambda e: on_select())
+        
+        # Focus the dialog so it receives key events
+        dialog.focus_set()
+
+        # Handle window close button
+        dialog.protocol("WM_DELETE_WINDOW", on_cancel)
+
+        # Wait for dialog
+        self.root.wait_window(dialog)
+        
+        return result['selected']
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   HEADER
@@ -247,6 +498,13 @@ class AttendanceApp:
             font=(FONT, 12), fg=TEXT_SEC, bg=HEADER_BG)
         self.project_label.pack(side='left', padx=(8, 0))
 
+        # Change Project button
+        self.change_project_btn = tk.Button(
+            left, text="⚙ Change", font=(FONT, 9),
+            bg=SEPARATOR, fg=TEXT, cursor='hand2',
+            command=self._change_project, relief='flat', padx=8)
+        self.change_project_btn.pack(side='left', padx=(12, 0))
+
         # Right — time + status
         right = tk.Frame(header, bg=HEADER_BG)
         right.pack(side='right', padx=16)
@@ -262,37 +520,56 @@ class AttendanceApp:
         self.connection_label.pack(side='right')
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    #   MAIN AREA (Camera + Info Panel)
+    #   MAIN AREA (Attendance Table + Camera/Status Panel)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     def _build_main_area(self):
         main = tk.Frame(self.root, bg=BG)
         main.pack(fill='both', expand=True, padx=12, pady=(8, 4))
 
-        # Left: Camera feed (fills available space)
-        camera_frame = tk.Frame(
-            main, bg=CAMERA_BG,
-            highlightbackground=SEPARATOR, highlightthickness=1)
-        camera_frame.pack(side='left', fill='both', expand=True)
+        # Create horizontal paned layout
+        # Left: Attendance Records (main focus - larger)
+        # Right: Camera + Detection Status (smaller - about 1/3)
 
-        self.camera_label = tk.Label(camera_frame, bg=CAMERA_BG)
+        # Left section: Attendance Records Table (main focus)
+        left_section = tk.Frame(main, bg=BG)
+        left_section.pack(side='left', fill='both', expand=True, padx=(0, 8))
+
+        self._build_attendance_table(left_section)
+
+        # Right section: Camera + Detection Status
+        right_section = tk.Frame(main, bg=BG, width=400)
+        right_section.pack(side='right', fill='y')
+        right_section.pack_propagate(False)
+
+        self._build_camera_panel(right_section)
+
+    def _build_camera_panel(self, parent):
+        """Build the camera and detection status panel (right side)."""
+
+        # ── Camera Feed ───────────────────────────────────
+        camera_card = tk.Frame(
+            parent, bg=CARD_BG,
+            highlightbackground=SEPARATOR, highlightthickness=1)
+        camera_card.pack(fill='both', expand=True, pady=(0, 8))
+
+        tk.Label(
+            camera_card, text="CAMERA FEED",
+            font=(FONT, 9, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
+            anchor='w').pack(fill='x', padx=10, pady=(8, 4))
+
+        camera_container = tk.Frame(camera_card, bg=CAMERA_BG, height=280)
+        camera_container.pack(fill='both', expand=True, padx=8, pady=(0, 8))
+        camera_container.pack_propagate(False)
+
+        self.camera_label = tk.Label(camera_container, bg=CAMERA_BG)
         self.camera_label.pack(fill='both', expand=True)
 
         self.camera_placeholder = tk.Label(
-            camera_frame,
-            text="📷\nInitializing Camera...",
-            font=(FONT, 16), fg=TEXT_SEC, bg=CAMERA_BG,
+            camera_container,
+            text="📷\nInitializing...",
+            font=(FONT, 14), fg=TEXT_SEC, bg=CAMERA_BG,
             justify='center')
         self.camera_placeholder.place(relx=0.5, rely=0.5, anchor='center')
-
-        # Right: Info panel
-        info_panel = tk.Frame(main, bg=BG, width=320)
-        info_panel.pack(side='right', fill='y', padx=(8, 0))
-        info_panel.pack_propagate(False)
-
-        self._build_info_panel(info_panel)
-
-    def _build_info_panel(self, parent):
-        """Build the right-side panel with stability, notifications, and stats."""
 
         # ── Detection Status Card ─────────────────────────
         stab_card = tk.Frame(
@@ -307,17 +584,17 @@ class AttendanceApp:
 
         self.stab_name_label = tk.Label(
             stab_card, text="No face detected",
-            font=(FONT, 13, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
+            font=(FONT, 14, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
             anchor='w')
         self.stab_name_label.pack(fill='x', padx=14)
 
         # Progress bar
-        bar_container = tk.Frame(stab_card, bg=SEPARATOR, height=8)
+        bar_container = tk.Frame(stab_card, bg=SEPARATOR, height=10)
         bar_container.pack(fill='x', padx=14, pady=(8, 4))
         bar_container.pack_propagate(False)
 
         self.stab_bar_fill = tk.Frame(
-            bar_container, bg=TEXT_SEC, height=8)
+            bar_container, bg=TEXT_SEC, height=10)
         self.stab_bar_fill.place(x=0, y=0, relheight=1.0, relwidth=0.0)
 
         self.stab_text_label = tk.Label(
@@ -326,93 +603,116 @@ class AttendanceApp:
             anchor='w')
         self.stab_text_label.pack(fill='x', padx=14, pady=(0, 12))
 
-        # ── Last Action Card ──────────────────────────────
-        self.notif_card = tk.Frame(
+        # ── Quick Stats ──────────────────────────────────
+        stats_card = tk.Frame(
             parent, bg=CARD_BG,
             highlightbackground=SEPARATOR, highlightthickness=1)
-        self.notif_card.pack(fill='x', pady=(0, 8))
+        stats_card.pack(fill='x')
 
-        self.notif_header_label = tk.Label(
-            self.notif_card, text="LAST ACTION",
-            font=(FONT, 9, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w')
-        self.notif_header_label.pack(fill='x', padx=14, pady=(12, 4))
+        stats_frame = tk.Frame(stats_card, bg=CARD_BG)
+        stats_frame.pack(fill='x', padx=14, pady=12)
 
-        self.notif_icon_label = tk.Label(
-            self.notif_card, text="—",
-            font=(FONT, 28), fg=TEXT_SEC, bg=CARD_BG)
-        self.notif_icon_label.pack(padx=14, pady=(4, 0))
-
-        self.notif_title_label = tk.Label(
-            self.notif_card, text="No actions yet",
-            font=(FONT, 13, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w', wraplength=280)
-        self.notif_title_label.pack(fill='x', padx=14)
-
-        self.notif_detail_label = tk.Label(
-            self.notif_card, text="System ready",
-            font=(FONT, 10), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w', wraplength=280)
-        self.notif_detail_label.pack(fill='x', padx=14, pady=(2, 12))
-
-        # ── Today's Summary Card ──────────────────────────
-        summary_card = tk.Frame(
-            parent, bg=CARD_BG,
-            highlightbackground=SEPARATOR, highlightthickness=1)
-        summary_card.pack(fill='x', pady=(0, 8))
-
-        tk.Label(
-            summary_card, text="TODAY'S SUMMARY",
-            font=(FONT, 9, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w').pack(fill='x', padx=14, pady=(12, 8))
-
-        stats_frame = tk.Frame(summary_card, bg=CARD_BG)
-        stats_frame.pack(fill='x', padx=14, pady=(0, 12))
-
+        # Present count
+        present_frame = tk.Frame(stats_frame, bg=CARD_BG)
+        present_frame.pack(side='left', expand=True)
         self.present_label = tk.Label(
-            stats_frame, text="0", font=(FONT, 24, 'bold'),
+            present_frame, text="0", font=(FONT, 28, 'bold'),
             fg=SUCCESS, bg=CARD_BG)
-        self.present_label.pack(side='left')
-        tk.Label(
-            stats_frame, text=" present",
-            font=(FONT, 12), fg=TEXT_SEC, bg=CARD_BG
-        ).pack(side='left', padx=(4, 20))
+        self.present_label.pack()
+        tk.Label(present_frame, text="Present",
+                 font=(FONT, 9), fg=TEXT_SEC, bg=CARD_BG).pack()
 
+        # Completed count
+        completed_frame = tk.Frame(stats_frame, bg=CARD_BG)
+        completed_frame.pack(side='left', expand=True)
         self.completed_label = tk.Label(
-            stats_frame, text="0", font=(FONT, 24, 'bold'),
+            completed_frame, text="0", font=(FONT, 28, 'bold'),
             fg=PRIMARY, bg=CARD_BG)
-        self.completed_label.pack(side='left')
-        tk.Label(
-            stats_frame, text=" completed",
-            font=(FONT, 12), fg=TEXT_SEC, bg=CARD_BG
-        ).pack(side='left')
+        self.completed_label.pack()
+        tk.Label(completed_frame, text="Completed",
+                 font=(FONT, 9), fg=TEXT_SEC, bg=CARD_BG).pack()
 
-        # ── Controls Help Card ────────────────────────────
-        help_card = tk.Frame(
+    def _build_info_panel(self, parent):
+        """Legacy - kept for compatibility but not used."""
+        pass
+
+    def _build_attendance_table(self, parent):
+        """Build the attendance records table section (main focus)."""
+        # Section header
+        table_header = tk.Frame(parent, bg=BG)
+        table_header.pack(fill='x', pady=(0, 8))
+
+        tk.Label(table_header, text="TODAY'S ATTENDANCE RECORDS",
+                 font=(FONT, 12, 'bold'), fg=GOLD, bg=BG).pack(side='left')
+
+        self.record_count_label = tk.Label(
+            table_header, text="0 records",
+            font=(FONT, 10), fg=TEXT_SEC, bg=BG)
+        self.record_count_label.pack(side='right')
+
+        # Table container with border - main focus element
+        table_container = tk.Frame(
             parent, bg=CARD_BG,
-            highlightbackground=SEPARATOR, highlightthickness=1)
-        help_card.pack(fill='x', side='bottom')
+            highlightbackground=GOLD, highlightthickness=2)
+        table_container.pack(fill='both', expand=True, pady=(0, 5))
 
-        tk.Label(
-            help_card, text="CONTROLS",
-            font=(FONT, 9, 'bold'), fg=TEXT_SEC, bg=CARD_BG,
-            anchor='w').pack(fill='x', padx=14, pady=(12, 6))
+        # Create Treeview with scrollbar
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure('Attendance.Treeview',
+                        background=CARD_BG,
+                        foreground=TEXT,
+                        fieldbackground=CARD_BG,
+                        rowheight=32,
+                        font=(FONT, 10))
+        style.configure('Attendance.Treeview.Heading',
+                        background=HEADER_BG,
+                        foreground=TEXT,
+                        font=(FONT, 10, 'bold'),
+                        padding=(8, 6))
+        style.map('Attendance.Treeview',
+                  background=[('selected', GOLD)],
+                  foreground=[('selected', HEADER_BG)])
 
-        for key, desc in [("F", "Toggle fullscreen"),
-                          ("R", "Reload face data"),
-                          ("Q / Esc", "Exit application")]:
-            row = tk.Frame(help_card, bg=CARD_BG)
-            row.pack(fill='x', padx=14, pady=1)
-            tk.Label(
-                row, text=f"  {key}  ",
-                font=(FONT, 9, 'bold'), fg=CARD_BG, bg=TEXT_SEC
-            ).pack(side='left')
-            tk.Label(
-                row, text=f"  {desc}",
-                font=(FONT, 9), fg=TEXT_SEC, bg=CARD_BG
-            ).pack(side='left')
+        columns = ('worker_name', 'worker_code', 'time_in', 'time_out', 
+                   'status', 'hours', 'role', 'classification', 'schedule')
+        
+        tree_frame = tk.Frame(table_container, bg=CARD_BG)
+        tree_frame.pack(fill='both', expand=True, padx=2, pady=2)
 
-        tk.Frame(help_card, bg=CARD_BG, height=12).pack()
+        self.attendance_tree = ttk.Treeview(
+            tree_frame, columns=columns, show='headings',
+            style='Attendance.Treeview', height=15)
+
+        # Define columns
+        self.attendance_tree.heading('worker_name', text='Worker Name')
+        self.attendance_tree.heading('worker_code', text='Code')
+        self.attendance_tree.heading('time_in', text='Time In')
+        self.attendance_tree.heading('time_out', text='Time Out')
+        self.attendance_tree.heading('status', text='Status')
+        self.attendance_tree.heading('hours', text='Hours')
+        self.attendance_tree.heading('role', text='Role')
+        self.attendance_tree.heading('classification', text='Classification')
+        self.attendance_tree.heading('schedule', text='Schedule')
+
+        # Column widths
+        self.attendance_tree.column('worker_name', width=150, minwidth=120)
+        self.attendance_tree.column('worker_code', width=80, minwidth=60)
+        self.attendance_tree.column('time_in', width=80, minwidth=70)
+        self.attendance_tree.column('time_out', width=80, minwidth=70)
+        self.attendance_tree.column('status', width=80, minwidth=60)
+        self.attendance_tree.column('hours', width=60, minwidth=50)
+        self.attendance_tree.column('role', width=100, minwidth=80)
+        self.attendance_tree.column('classification', width=100, minwidth=80)
+        self.attendance_tree.column('schedule', width=100, minwidth=80)
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(tree_frame, orient='vertical',
+                                   command=self.attendance_tree.yview)
+        self.attendance_tree.configure(yscrollcommand=scrollbar.set)
+
+        self.attendance_tree.pack(side='left', fill='both', expand=True)
+        scrollbar.pack(side='right', fill='y')
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   FOOTER
@@ -449,24 +749,16 @@ class AttendanceApp:
         """Initialize all system components."""
         logger.info("Initializing components...")
 
-        # Databases
-        self.mysql_db = MySQLDatabase()
-        self.sqlite_db = SQLiteDatabase()
+        # Database already initialized in _init_databases
 
-        mysql_ok = False
-        try:
-            mysql_ok = self.mysql_db.connect()
-        except Exception:
-            pass
-
-        if mysql_ok:
+        if self.mysql_db and self.mysql_db.is_connected:
             self.connection_label.config(text="● Online", fg=SUCCESS)
             logger.info("MySQL connected")
         else:
             self.connection_label.config(text="● Offline", fg=WARNING)
             logger.warning("MySQL unavailable — running offline")
 
-        # Load project info
+        # Load project info using selected project
         self._load_project_info()
 
         # Core components
@@ -475,10 +767,10 @@ class AttendanceApp:
             self.mysql_db, self.sqlite_db)
         self.sync_manager = SyncManager(self.mysql_db, self.sqlite_db)
 
-        # Load face encodings
+        # Load face encodings for selected project
         try:
             self.encoding_count = self.face_recognizer.load_encodings(
-                project_id=Config.PROJECT_ID)
+                project_id=self.selected_project_id)
         except Exception as e:
             logger.error(f"Failed to load encodings: {e}")
             self.encoding_count = 0
@@ -501,18 +793,20 @@ class AttendanceApp:
         # Hide placeholder
         self.camera_placeholder.place_forget()
 
-        # Initial summary
+        # Initial summary and attendance records
         self._update_summary()
+        self._refresh_attendance_records()
 
         logger.info("Initialization complete")
 
     def _load_project_info(self):
         """Load project name from database."""
-        if (Config.PROJECT_ID and self.mysql_db
-                and self.mysql_db.is_connected):
+        project_id = self.selected_project_id or Config.PROJECT_ID
+        
+        if project_id and self.mysql_db and self.mysql_db.is_connected:
             project = self.mysql_db.fetch_one(
                 "SELECT project_name FROM projects WHERE project_id = %s",
-                (Config.PROJECT_ID,))
+                (project_id,))
             if project:
                 self.project_name = project['project_name']
                 self.project_label.config(
@@ -520,6 +814,155 @@ class AttendanceApp:
                 return
 
         self.project_label.config(text="  Attendance System")
+
+    def _refresh_attendance_records(self):
+        """Refresh the attendance records table with today's data."""
+        if not self.mysql_db or not self.mysql_db.is_connected:
+            return
+
+        project_id = self.selected_project_id or Config.PROJECT_ID
+        today_str = date.today().isoformat()
+        day_name = date.today().strftime('%A').lower()
+
+        try:
+            if project_id:
+                records = self.mysql_db.fetch_all("""
+                    SELECT 
+                        CONCAT(w.first_name, ' ', w.last_name) as worker_name,
+                        w.worker_code,
+                        a.time_in,
+                        a.time_out,
+                        a.status,
+                        COALESCE(a.hours_worked, 0) as hours_worked,
+                        COALESCE(wt.work_type_name, w.position, 'N/A') as role,
+                        COALESCE(wc.classification_name, 'N/A') as classification,
+                        s.start_time,
+                        s.end_time
+                    FROM attendance a
+                    JOIN workers w ON a.worker_id = w.worker_id
+                    JOIN project_workers pw ON w.worker_id = pw.worker_id
+                    LEFT JOIN work_types wt ON w.work_type_id = wt.work_type_id
+                    LEFT JOIN worker_classifications wc ON wt.classification_id = wc.classification_id
+                    LEFT JOIN schedules s ON w.worker_id = s.worker_id 
+                        AND s.day_of_week = %s AND s.is_active = 1
+                    WHERE a.attendance_date = %s
+                    AND a.is_archived = 0
+                    AND pw.project_id = %s
+                    AND pw.is_active = 1
+                    GROUP BY a.attendance_id
+                    ORDER BY a.created_at DESC
+                """, (day_name, today_str, project_id))
+            else:
+                records = self.mysql_db.fetch_all("""
+                    SELECT 
+                        CONCAT(w.first_name, ' ', w.last_name) as worker_name,
+                        w.worker_code,
+                        a.time_in,
+                        a.time_out,
+                        a.status,
+                        COALESCE(a.hours_worked, 0) as hours_worked,
+                        COALESCE(wt.work_type_name, w.position, 'N/A') as role,
+                        COALESCE(wc.classification_name, 'N/A') as classification,
+                        s.start_time,
+                        s.end_time
+                    FROM attendance a
+                    JOIN workers w ON a.worker_id = w.worker_id
+                    LEFT JOIN work_types wt ON w.work_type_id = wt.work_type_id
+                    LEFT JOIN worker_classifications wc ON wt.classification_id = wc.classification_id
+                    LEFT JOIN schedules s ON w.worker_id = s.worker_id 
+                        AND s.day_of_week = %s AND s.is_active = 1
+                    WHERE a.attendance_date = %s
+                    AND a.is_archived = 0
+                    GROUP BY a.attendance_id
+                    ORDER BY a.created_at DESC
+                """, (day_name, today_str))
+
+            self.attendance_records = records if records else []
+            self._update_attendance_table()
+
+        except Exception as e:
+            logger.error(f"Failed to refresh attendance records: {e}")
+
+    def _update_attendance_table(self):
+        """Update the treeview with current attendance records."""
+        # Clear existing items
+        for item in self.attendance_tree.get_children():
+            self.attendance_tree.delete(item)
+
+        # Add records
+        for record in self.attendance_records:
+            status = record.get('status', 'present') or 'present'
+            status_display = status.replace('_', ' ').title()
+            
+            hours = record.get('hours_worked', 0) or 0
+            hours_display = f"{float(hours):.1f}h" if float(hours) > 0 else '-'
+            
+            # Helper to format time values (timedelta or datetime.time) to "HH:MM AM/PM"
+            def format_time(val):
+                if val is None:
+                    return '-'
+                try:
+                    if isinstance(val, timedelta):
+                        total_seconds = int(val.total_seconds())
+                        hours_val = (total_seconds // 3600) % 24
+                        minutes_val = (total_seconds % 3600) // 60
+                    elif hasattr(val, 'hour'):
+                        hours_val = val.hour
+                        minutes_val = val.minute
+                    else:
+                        return str(val)
+                    
+                    period = 'AM' if hours_val < 12 else 'PM'
+                    display_hour = hours_val % 12
+                    if display_hour == 0:
+                        display_hour = 12
+                    return f"{display_hour}:{minutes_val:02d} {period}"
+                except:
+                    return str(val) if val else '-'
+            
+            time_in = format_time(record.get('time_in'))
+            time_out = format_time(record.get('time_out'))
+            
+            # Format schedule (start_time - end_time)
+            start_time = record.get('start_time')
+            end_time = record.get('end_time')
+            if start_time and end_time:
+                schedule = f"{format_time(start_time)} - {format_time(end_time)}"
+            else:
+                schedule = 'Not set'
+            
+            role = record.get('role') or 'N/A'
+            classification = record.get('classification') or 'N/A'
+            
+            self.attendance_tree.insert('', 'end', values=(
+                record.get('worker_name', ''),
+                record.get('worker_code', ''),
+                time_in,
+                time_out,
+                status_display,
+                hours_display,
+                role,
+                classification,
+                schedule
+            ))
+
+        # Update count label
+        count = len(self.attendance_records)
+        self.record_count_label.config(text=f"{count} record{'s' if count != 1 else ''}")
+
+    def _attendance_refresh_worker(self):
+        """Background thread to periodically refresh attendance records."""
+        logger.info("Attendance refresh worker started")
+        
+        while self.is_running:
+            time.sleep(30)  # Refresh every 30 seconds
+            
+            try:
+                self.root.after(0, self._refresh_attendance_records)
+            except Exception as e:
+                logger.error(f"Attendance refresh error: {e}")
+        
+        logger.info("Attendance refresh worker stopped")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   CAMERA LOOP (Main Thread — ~30 fps)
@@ -726,19 +1169,14 @@ class AttendanceApp:
                     notif = {
                         'type': 'timein',
                         'title': 'TIME IN RECORDED',
-                        'detail': (
-                            f"{worker_name} ({worker_code})\n"
-                            f"Clocked in at {now_str}"),
+                        'detail': f"{worker_name} ({worker_code}) - In: {now_str}",
                     }
                 elif action == 'timeout':
                     hours = result.get('hours_worked', 0)
                     notif = {
                         'type': 'timeout',
                         'title': 'TIME OUT RECORDED',
-                        'detail': (
-                            f"{worker_name} ({worker_code})\n"
-                            f"Clocked out at {now_str}\n"
-                            f"Hours worked: {hours:.1f}h"),
+                        'detail': f"{worker_name} ({worker_code}) - Out: {now_str} ({hours:.1f}h)",
                     }
                 else:
                     notif = {
@@ -758,11 +1196,12 @@ class AttendanceApp:
 
             self.root.after(0, lambda: self._show_notification(notif))
             self.root.after(200, self._update_summary)
+            self.root.after(500, self._refresh_attendance_records)
 
         threading.Thread(target=do_process, daemon=True).start()
 
     def _show_notification(self, notif: Dict[str, Any]):
-        """Display notification in the status card."""
+        """Display notification feedback in the detection status area."""
         self.notification = notif
         self.notification_expiry = (
             time.time() + Config.DISPLAY_FEEDBACK_SECONDS)
@@ -771,22 +1210,16 @@ class AttendanceApp:
         colors = STATUS_COLORS.get(ntype, STATUS_COLORS['error'])
 
         try:
-            bg = colors['bg']
             fg = colors['fg']
+            icon = colors['icon']
 
-            self.notif_card.config(bg=bg)
-            for child in self.notif_card.winfo_children():
-                try:
-                    child.config(bg=bg)
-                except tk.TclError:
-                    pass
-
-            self.notif_icon_label.config(
-                text=colors['icon'], fg=fg, bg=bg)
-            self.notif_title_label.config(
-                text=notif['title'], fg=fg, bg=bg)
-            self.notif_detail_label.config(
-                text=notif.get('detail', ''), bg=bg)
+            # Update the detection status to show feedback
+            self.stab_name_label.config(
+                text=f"{icon} {notif['title']}", fg=fg)
+            self.stab_text_label.config(
+                text=notif.get('detail', ''))
+            self.stab_bar_fill.config(bg=fg)
+            self.stab_bar_fill.place(x=0, y=0, relheight=1.0, relwidth=1.0)
         except tk.TclError:
             pass
 
@@ -795,10 +1228,12 @@ class AttendanceApp:
         if not self.mysql_db or not self.mysql_db.is_connected:
             return
 
+        project_id = self.selected_project_id or Config.PROJECT_ID
+
         try:
             today_str = date.today().isoformat()
 
-            if Config.PROJECT_ID:
+            if project_id:
                 row = self.mysql_db.fetch_one("""
                     SELECT
                         COUNT(DISTINCT a.worker_id)
@@ -814,7 +1249,7 @@ class AttendanceApp:
                     AND a.is_archived = 0
                     AND pw.project_id = %s
                     AND pw.is_active = 1
-                """, (today_str, Config.PROJECT_ID))
+                """, (today_str, project_id))
             else:
                 row = self.mysql_db.fetch_one("""
                     SELECT
@@ -871,6 +1306,8 @@ class AttendanceApp:
         """Background sync thread."""
         logger.info("Sync worker started")
 
+        project_id = self.selected_project_id or Config.PROJECT_ID
+
         while self.is_running:
             time.sleep(Config.SYNC_INTERVAL_SECONDS)
 
@@ -887,7 +1324,7 @@ class AttendanceApp:
                         try:
                             count = (
                                 self.face_recognizer.load_encodings(
-                                    project_id=Config.PROJECT_ID))
+                                    project_id=project_id))
                             self.encoding_count = count
                             self.root.after(
                                 0,
@@ -941,11 +1378,13 @@ class AttendanceApp:
 
     def _reload_encodings(self):
         logger.info("Reloading face encodings...")
+        
+        project_id = self.selected_project_id or Config.PROJECT_ID
 
         def reload():
             try:
                 count = self.face_recognizer.load_encodings(
-                    project_id=Config.PROJECT_ID)
+                    project_id=project_id)
                 self.encoding_count = count
                 self.root.after(
                     0,
@@ -956,6 +1395,23 @@ class AttendanceApp:
                 logger.error(f"Reload failed: {e}")
 
         threading.Thread(target=reload, daemon=True).start()
+
+    def _change_project(self):
+        """Open project selection dialog to change the current project."""
+        if not self.mysql_db or not self.mysql_db.is_connected:
+            messagebox.showerror(
+                "Connection Error",
+                "Cannot connect to database.\nPlease check your connection.")
+            return
+
+        # Show project selection dialog (forced)
+        if self._show_project_selection(force=True):
+            # Reload project info and encodings
+            self._load_project_info()
+            self._reload_encodings()
+            self._refresh_attendance_records()
+            self._update_summary()
+            logger.info(f"Switched to project ID: {self.selected_project_id}")
 
     def _shutdown(self):
         logger.info("Shutting down...")
