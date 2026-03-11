@@ -273,7 +273,10 @@ class FaceRegistrationApp:
         self.db_status_label.pack(side='right', padx=15)
 
     def _set_status(self, text, color=TEXT_SEC):
-        self.status_label.config(text=text, fg=color)
+        try:
+            self.status_label.config(text=text, fg=color)
+        except tk.TclError:
+            pass
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   DATABASE
@@ -590,20 +593,30 @@ class FaceRegistrationApp:
         if self.cap and self.cap.isOpened():
             return  # already running
 
-        try:
-            self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        except Exception:
-            self.cap = cv2.VideoCapture(0)
+        # Try multiple backends
+        cap = None
+        for backend in [cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY]:
+            try:
+                cap = cv2.VideoCapture(0, backend)
+                if cap and cap.isOpened():
+                    break
+                if cap:
+                    cap.release()
+                    cap = None
+            except Exception:
+                cap = None
 
-        if not self.cap or not self.cap.isOpened():
-            messagebox.showerror("Camera Error",
-                "Cannot open webcam!\n\n"
-                "Make sure:\n"
-                "  • Camera is connected\n"
-                "  • No other app is using the camera")
-            self._set_status("Camera error!", DANGER)
+        if not cap or not cap.isOpened():
+            # Show placeholder text instead of blocking messagebox
+            try:
+                self._set_status("Camera not available — connect a camera and try again", DANGER)
+                self.camera_label.config(text="📷  No camera detected\nConnect a webcam to preview",
+                                         font=(FONT, 14), fg='#666', compound='center')
+            except tk.TclError:
+                pass
             return
 
+        self.cap = cap
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
@@ -614,6 +627,16 @@ class FaceRegistrationApp:
 
     def _start_capture(self, worker):
         """Switch from preview mode to capture mode."""
+        # If camera isn't running yet, try to start it first
+        if not self.camera_running:
+            self._start_preview()
+            if not self.camera_running:
+                try:
+                    self._set_status("Cannot start capture — no camera available", DANGER)
+                except tk.TclError:
+                    pass
+                return
+
         self.captured_images = []
         self.capturing = True
 
@@ -656,6 +679,9 @@ class FaceRegistrationApp:
 
     def _camera_loop(self):
         if not self.camera_running:
+            return
+        if not self.cap or not self.cap.isOpened():
+            self.camera_running = False
             return
 
         ret, frame = self.cap.read()
