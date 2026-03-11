@@ -29,14 +29,14 @@ class FaceRecognizer:
         self.last_face_names = []
         self.last_face_ids = []  # Track worker IDs
     
-    def load_encodings(self) -> int:
-        """Load face encodings from database"""
-        logger.info("Loading face encodings...")
-        
+    def load_encodings(self, project_id=None) -> int:
+        """Load face encodings from database, optionally filtered by project."""
+        logger.info(f"Loading face encodings (project_id={project_id})...")
+
         # Try MySQL first
         encodings = []
         if self.mysql_db and self.mysql_db.is_connected:
-            encodings = self._load_from_mysql()
+            encodings = self._load_from_mysql(project_id)
             if encodings and self.sqlite_db:
                 self.sqlite_db.cache_face_encodings(encodings)
         else:
@@ -66,24 +66,48 @@ class FaceRecognizer:
         logger.info(f"Loaded {len(self.known_encodings)} encodings")
         return len(self.known_encodings)
     
-    def _load_from_mysql(self) -> List[Dict[str, Any]]:
-        """Load from MySQL"""
-        query = """
-            SELECT 
-                fe.encoding_id,
-                fe.worker_id,
-                fe.encoding_data,
-                w.first_name,
-                w.last_name,
-                w.worker_code,
-                fe.is_active
-            FROM face_encodings fe
-            JOIN workers w ON fe.worker_id = w.worker_id
-            WHERE fe.is_active = 1 
-            AND w.employment_status = 'active'
-            AND w.is_archived = 0
-        """
-        return self.mysql_db.fetch_all(query) if self.mysql_db else []
+    def _load_from_mysql(self, project_id=None) -> List[Dict[str, Any]]:
+        """Load from MySQL, optionally filtered by project."""
+        if not self.mysql_db:
+            return []
+
+        if project_id:
+            query = """
+                SELECT
+                    fe.encoding_id,
+                    fe.worker_id,
+                    fe.encoding_data,
+                    w.first_name,
+                    w.last_name,
+                    w.worker_code,
+                    fe.is_active
+                FROM face_encodings fe
+                JOIN workers w ON fe.worker_id = w.worker_id
+                JOIN project_workers pw ON w.worker_id = pw.worker_id
+                WHERE fe.is_active = 1
+                AND w.employment_status = 'active'
+                AND w.is_archived = 0
+                AND pw.project_id = %s
+                AND pw.is_active = 1
+            """
+            return self.mysql_db.fetch_all(query, (project_id,))
+        else:
+            query = """
+                SELECT
+                    fe.encoding_id,
+                    fe.worker_id,
+                    fe.encoding_data,
+                    w.first_name,
+                    w.last_name,
+                    w.worker_code,
+                    fe.is_active
+                FROM face_encodings fe
+                JOIN workers w ON fe.worker_id = w.worker_id
+                WHERE fe.is_active = 1
+                AND w.employment_status = 'active'
+                AND w.is_archived = 0
+            """
+            return self.mysql_db.fetch_all(query)
     
     def recognize_face(self, frame: np.ndarray) -> Tuple[Optional[Dict[str, Any]], np.ndarray, Optional[Tuple[int, int, int, int]]]:
         """
@@ -239,49 +263,157 @@ class FaceRecognizer:
     def train_new_face(self, images: List[np.ndarray], worker_id: int) -> bool:
         """Train new face"""
         encodings = []
-        
+
         logger.info(f"Training face for worker {worker_id}...")
-        
+
         for idx, img in enumerate(images):
             rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             face_locations = face_recognition.face_locations(rgb_img)
-            
+
             if not face_locations:
                 logger.warning(f"No face in image {idx+1}")
                 continue
-            
+
             if len(face_locations) > 1:
                 logger.warning(f"Multiple faces in image {idx+1}")
-            
+
             face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
             if face_encodings:
                 encodings.append(face_encodings[0])
-                logger.info(f"✓ Processed image {idx+1}")
-        
+                logger.info(f"Processed image {idx+1}")
+
         if len(encodings) < 3:
             logger.error(f"Need 3+ images (got {len(encodings)})")
             return False
-        
+
         # Average encodings
         avg_encoding = np.mean(encodings, axis=0)
         encoding_json = json.dumps(avg_encoding.tolist())
-        
+
         # Store
         if not self.mysql_db or not self.mysql_db.is_connected:
             logger.error("MySQL not connected")
             return False
-        
+
         query = """
-            INSERT INTO face_encodings 
+            INSERT INTO face_encodings
             (worker_id, encoding_data, is_active)
             VALUES (%s, %s, 1)
         """
         encoding_id = self.mysql_db.execute_query(query, (worker_id, encoding_json))
-        
+
         if encoding_id:
-            logger.info(f"✅ Trained worker {worker_id}")
+            logger.info(f"Trained worker {worker_id}")
             self.load_encodings()
             return True
         else:
             logger.error("Failed to store encoding")
             return False
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    #   detect_and_recognize — returns structured face list
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def detect_and_recognize(
+        self, frame: np.ndarray
+    ) -> List[Dict[str, Any]]:
+        """
+        Detect all faces and recognize them.
+
+        Returns list of dicts:
+            [{
+                'worker_id': int | None,
+                'name': str,
+                'worker_code': str,
+                'confidence': float,
+                'box': (top, right, bottom, left),
+                'landmarks': {feature: [(x,y), ...]}
+            }, ...]
+        """
+        if not self.known_encodings:
+            return []
+
+        scale = self.scale_factor
+        small = cv2.resize(frame, (0, 0), fx=scale, fy=scale)
+        rgb = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
+
+        # Detect faces
+        face_locations = face_recognition.face_locations(
+            rgb, model='hog', number_of_times_to_upsample=0)
+        if not face_locations:
+            return []
+
+        face_encodings = face_recognition.face_encodings(rgb, face_locations)
+
+        # Landmarks (optional, for mesh visualization)
+        face_landmarks_list = []
+        try:
+            face_landmarks_list = face_recognition.face_landmarks(rgb)
+        except Exception:
+            pass
+
+        inv = 1.0 / scale
+        results: List[Dict[str, Any]] = []
+
+        for idx, ((top, right, bottom, left), encoding) in enumerate(
+            zip(face_locations, face_encodings)
+        ):
+            # Scale to original frame coordinates
+            box = (
+                int(top * inv), int(right * inv),
+                int(bottom * inv), int(left * inv),
+            )
+
+            # Scale landmarks
+            landmarks = {}
+            if idx < len(face_landmarks_list):
+                for feature, points in face_landmarks_list[idx].items():
+                    landmarks[feature] = [
+                        (int(x * inv), int(y * inv))
+                        for x, y in points
+                    ]
+
+            # Compare with known faces
+            matches = face_recognition.compare_faces(
+                self.known_encodings, encoding,
+                tolerance=self.tolerance)
+
+            if True not in matches:
+                results.append({
+                    'worker_id': None,
+                    'name': 'Unknown',
+                    'worker_code': '',
+                    'confidence': 0.0,
+                    'box': box,
+                    'landmarks': landmarks,
+                })
+                continue
+
+            distances = face_recognition.face_distance(
+                self.known_encodings, encoding)
+            best_idx = np.argmin(distances)
+
+            if matches[best_idx]:
+                meta = self.known_metadata[best_idx]
+                name = (
+                    f"{meta.get('first_name', '')} "
+                    f"{meta.get('last_name', '')}"
+                ).strip() or 'Unknown'
+                results.append({
+                    'worker_id': meta['worker_id'],
+                    'name': name,
+                    'worker_code': meta.get('worker_code', ''),
+                    'confidence': 1 - distances[best_idx],
+                    'box': box,
+                    'landmarks': landmarks,
+                })
+            else:
+                results.append({
+                    'worker_id': None,
+                    'name': 'Unknown',
+                    'worker_code': '',
+                    'confidence': 0.0,
+                    'box': box,
+                    'landmarks': landmarks,
+                })
+
+        return results

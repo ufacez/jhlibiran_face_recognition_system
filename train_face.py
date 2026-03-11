@@ -34,17 +34,16 @@ def list_workers(mysql_db: MySQLDatabase):
         print("Please add workers through the web dashboard first.")
         return []
     
-    print(f"\n{'#':<5} {'ID':<8} {'Code':<12} {'Name':<30} {'Position':<20} {'Status':<10}")
-    print("-" * 80)
+    print(f"\n{'#':<5} {'Code':<12} {'Name':<30} {'Position':<20} {'Status':<10}")
+    print("-" * 72)
     
     for idx, worker in enumerate(workers, 1):
-        worker_id = worker['worker_id']
         code = worker['worker_code']
         name = f"{worker['first_name']} {worker['last_name']}"
         position = worker['position'] or 'N/A'
         status = worker['employment_status']
         
-        print(f"{idx:<5} {worker_id:<8} {code:<12} {name:<30} {position:<20} {status:<10}")
+        print(f"{idx:<5} {code:<12} {name:<30} {position:<20} {status:<10}")
     
     print("=" * 80)
     return workers
@@ -383,7 +382,6 @@ def main():
     print("\n" + "=" * 80)
     print(f"  SELECTED WORKER")
     print("=" * 80)
-    print(f"  Worker:   {worker_id}")
     print(f"  Name:     {worker_name}")
     print(f"  Code:     {worker_code}")
     print(f"  Position: {selected_worker['position']}")
@@ -436,6 +434,26 @@ def main():
         print(f"  Images: {len(images)}")
         print("=" * 80)
         print(f"\n✓ {worker_name} can now use facial recognition for attendance")
+        
+        # Log to audit_trail for website audit page - Biometric Registration
+        try:
+            import json as _json
+            mysql_db.execute_query("""
+                INSERT INTO audit_trail 
+                (user_id, username, user_level, action_type, module, table_name,
+                 record_id, record_identifier, old_values, new_values, changes_summary,
+                 ip_address, user_agent, severity, is_sensitive, success)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                None, 'Biometric System', 'super_admin', 'create', 'biometric', 'face_encodings',
+                worker_id, f'{worker_name} ({worker_code})', None,
+                _json.dumps({'worker_id': worker_id, 'worker_name': worker_name, 'images_captured': len(images)}),
+                f'Biometric Registration - Face registered for {worker_name} ({worker_code}) with {len(images)} images',
+                'facial_recognition_system', 'FacialRecognitionDevice', 'medium', 0, 1
+            ))
+            print("✓ Audit trail logged: Biometric face registration")
+        except Exception as e:
+            print(f"⚠ Audit trail log failed: {e}")
         
         # Ask if user wants to train another worker
         print("\n" + "=" * 80)
