@@ -1219,8 +1219,7 @@ class FaceRegistrationApp:
                 try:
                     rgb = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
                     small = cv2.resize(rgb, (0, 0), fx=scale, fy=scale)
-                    locs = face_recognition.face_locations(
-                        small, model='hog', number_of_times_to_upsample=DETECTION_UPSAMPLE)
+                    locs = face_recognition.face_locations(small, model='hog', number_of_times_to_upsample=0)
                     face_locs = [
                         (int(t / scale), int(r / scale),
                          int(b / scale), int(l / scale))
