@@ -85,6 +85,15 @@ AUTO_CAPTURE_HOLD_SECONDS = 1.5   # Hold still with face detected to auto-captur
 MIN_FACE_SIZE_RATIO = 0.08        # Face must be at least 8% of frame area
 CAPTURE_COOLDOWN = 1.0            # Seconds between auto-captures
 
+# Performance tuning
+UI_FRAME_MS = 90                   # Tk redraw interval (~11 FPS reduces CPU load)
+DETECTION_SCALE = 0.18             # Downscale factor for detection work (slightly higher for accuracy)
+DETECTION_SLEEP = 0.08             # Sleep between detection iterations when capturing
+IDLE_DETECTION_SLEEP = 0.14        # Sleep when just previewing
+DETECTION_INTERVAL = 2             # Run detection every Nth loop iteration
+DETECTION_UPSAMPLE = 1             # Upsample once to improve face detection sensitivity
+SHOW_LANDMARKS = False             # Landmarks are expensive; off by default
+
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 #  Main Application
@@ -120,6 +129,9 @@ class FaceRegistrationApp:
         self.search_entry = None         # reference for focus check
         self.capture_flash_until = 0     # timestamp for flash overlay
         self.face_quality_ok = False     # current frame quality flag
+        self.frame_lock = threading.Lock()
+        self.detection_thread = None
+        self.detection_running = False
 
         # ── Build UI ───────────────────────────────
         self._build_header()
@@ -222,7 +234,7 @@ class FaceRegistrationApp:
         # Separator
         tk.Frame(left, bg=SEPARATOR, height=1).pack(fill='x')
 
-        # Scrollable worker list
+        # Scrollable worker list (canvas + frame for modern styling)
         list_container = tk.Frame(left, bg=CARD)
         list_container.pack(fill='both', expand=True)
 
@@ -529,7 +541,9 @@ class FaceRegistrationApp:
         self.camera_container.pack_propagate(False)
 
         # Camera label for live preview
-        self.camera_label = tk.Label(self.camera_container, bg='#000')
+        self.camera_label = tk.Label(self.camera_container, bg='#000',
+                         fg='#CCCCCC', text="Press Start to open camera",
+                         font=(FONT, 12))
         self.camera_label.pack(fill='both', expand=True)
 
         # Controls area
@@ -582,9 +596,6 @@ class FaceRegistrationApp:
 
         self._set_status(f"Selected: {name}")
 
-        # Start camera preview immediately
-        self._start_preview()
-
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     #   CAMERA
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -617,8 +628,9 @@ class FaceRegistrationApp:
             return
 
         self.cap = cap
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        # Use a smaller preview resolution to reduce CPU load
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 800)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 450)
 
         self.camera_running = True
         self.capturing = False
@@ -639,6 +651,9 @@ class FaceRegistrationApp:
 
         self.captured_images = []
         self.capturing = True
+
+        # Start face detection now (avoid running it during idle preview)
+        self._start_detection_thread()
 
         # Swap buttons: hide Start, show Capture + Cancel
         self.start_btn.pack_forget()
@@ -690,27 +705,11 @@ class FaceRegistrationApp:
             return
 
         frame = cv2.flip(frame, 1)
-        self.current_raw_frame = frame.copy()
+        with self.frame_lock:
+            self.current_raw_frame = frame.copy()
+
         display = frame.copy()
         h, w = display.shape[:2]
-
-        # Face detection (every 3rd frame for performance)
-        self.frame_counter += 1
-        if self.frame_counter % 3 == 0:
-            rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            scale = 0.25
-            small = cv2.resize(rgb, (0, 0), fx=scale, fy=scale)
-            locs = face_recognition.face_locations(small, model='hog')
-            self.face_locations = [
-                (int(t / scale), int(r / scale),
-                 int(b / scale), int(l / scale))
-                for t, r, b, l in locs
-            ]
-            # Get facial landmarks for face mesh overlay
-            try:
-                self.face_landmarks = face_recognition.face_landmarks(rgb)
-            except Exception:
-                self.face_landmarks = []
 
         face_detected = len(self.face_locations) > 0
         self.face_quality_ok, quality_msg = self._check_face_quality(
@@ -729,7 +728,7 @@ class FaceRegistrationApp:
             cv2.rectangle(display, (left, top), (right, bottom), color, 3)
 
         # Draw facial landmarks mesh
-        if face_detected and self.face_landmarks:
+        if SHOW_LANDMARKS and face_detected and self.face_landmarks:
             try:
                 for landmarks in self.face_landmarks:
                     for feature_name, points in landmarks.items():
@@ -755,9 +754,7 @@ class FaceRegistrationApp:
         else:
             guide_text = "Press Start to begin capture"
 
-        overlay = display.copy()
-        cv2.rectangle(overlay, (0, h - 80), (w, h), (0, 0, 0), -1)
-        cv2.addWeighted(overlay, 0.6, display, 0.4, 0, display)
+        cv2.rectangle(display, (0, h - 80), (w, h), (0, 0, 0), -1)
 
         text_size = cv2.getTextSize(guide_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
         text_x = (w - text_size[0]) // 2
@@ -804,35 +801,24 @@ class FaceRegistrationApp:
 
         # Convert frame for tkinter display — fit to container keeping aspect ratio
         rgb_display = cv2.cvtColor(display, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(rgb_display)
 
+        # Fast resize directly with OpenCV to avoid costly PIL LANCZOS + crop
         try:
             cw = self.camera_container.winfo_width()
             ch = self.camera_container.winfo_height()
             if cw > 10 and ch > 10:
-                # Maintain aspect ratio — fill container
-                img_w, img_h = pil_image.size
-                scale_w = cw / img_w
-                scale_h = ch / img_h
-                scale = max(scale_w, scale_h)  # fill (crop edges)
-                new_w = int(img_w * scale)
-                new_h = int(img_h * scale)
-                pil_image = pil_image.resize((new_w, new_h), Image.LANCZOS)
-                # Center crop
-                left_crop = (new_w - cw) // 2
-                top_crop = (new_h - ch) // 2
-                pil_image = pil_image.crop((left_crop, top_crop,
-                                            left_crop + cw, top_crop + ch))
+                rgb_display = cv2.resize(rgb_display, (cw, ch), interpolation=cv2.INTER_AREA)
         except Exception:
             pass
 
+        pil_image = Image.fromarray(rgb_display)
         self.photo_image = ImageTk.PhotoImage(pil_image)
         try:
             self.camera_label.config(image=self.photo_image)
         except tk.TclError:
             return
 
-        self.root.after(33, self._camera_loop)   # ~30 fps
+        self.root.after(UI_FRAME_MS, self._camera_loop)   # UI redraw interval
 
     def _capture_image(self):
         if not self.camera_running or not self.capturing or self.current_raw_frame is None:
@@ -870,6 +856,7 @@ class FaceRegistrationApp:
     def _stop_camera(self):
         self.camera_running = False
         self.capturing = False
+        self._stop_detection_thread()
         if self.cap:
             self.cap.release()
             self.cap = None
@@ -1185,6 +1172,7 @@ class FaceRegistrationApp:
 
     def _on_close(self):
         self.camera_running = False
+        self._stop_detection_thread()
         if self.cap:
             try:
                 self.cap.release()
@@ -1197,6 +1185,80 @@ class FaceRegistrationApp:
 
     def run(self):
         self.root.mainloop()
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    #   BACKGROUND FACE DETECTION (keeps UI responsive)
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def _start_detection_thread(self):
+        if self.detection_running:
+            return
+        self.detection_running = True
+
+        def worker():
+            # Run face detection on a downscaled frame to reduce CPU load
+            scale = DETECTION_SCALE
+            loop_idx = 0
+            while self.detection_running:
+                frame_copy = None
+                with self.frame_lock:
+                    if self.current_raw_frame is not None:
+                        frame_copy = self.current_raw_frame.copy()
+                if frame_copy is None:
+                    time.sleep(0.02)
+                    continue
+
+                loop_idx = (loop_idx + 1) % DETECTION_INTERVAL
+                if loop_idx != 0:
+                    # Skip detection this loop to reduce CPU
+                    if self.capturing:
+                        time.sleep(DETECTION_SLEEP)
+                    else:
+                        time.sleep(IDLE_DETECTION_SLEEP)
+                    continue
+
+                try:
+                    rgb = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
+                    small = cv2.resize(rgb, (0, 0), fx=scale, fy=scale)
+                    locs = face_recognition.face_locations(
+                        small, model='hog', number_of_times_to_upsample=DETECTION_UPSAMPLE)
+                    face_locs = [
+                        (int(t / scale), int(r / scale),
+                         int(b / scale), int(l / scale))
+                        for t, r, b, l in locs
+                    ]
+
+                    if SHOW_LANDMARKS:
+                        try:
+                            landmarks = face_recognition.face_landmarks(rgb)
+                        except Exception:
+                            landmarks = []
+                    else:
+                        landmarks = []
+
+                    self.face_locations = face_locs
+                    self.face_landmarks = landmarks
+                except Exception:
+                    # Keep loop alive even if detection fails for a frame
+                    time.sleep(0.02)
+                    continue
+
+                # Sleep more when only previewing to save CPU
+                if self.capturing:
+                    time.sleep(DETECTION_SLEEP)
+                else:
+                    time.sleep(IDLE_DETECTION_SLEEP)
+
+        self.detection_thread = threading.Thread(target=worker, daemon=True)
+        self.detection_thread.start()
+
+    def _stop_detection_thread(self):
+        self.detection_running = False
+        if self.detection_thread and self.detection_thread.is_alive():
+            try:
+                self.detection_thread.join(timeout=0.5)
+            except Exception:
+                pass
+        self.detection_thread = None
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
