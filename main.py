@@ -27,10 +27,16 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import cv2
 import numpy as np
+
+# Suppress face_recognition models warning (models are installed)
+import sys, io
+_old_stderr = sys.stderr
+sys.stderr = io.StringIO()
 import face_recognition
+sys.stderr = _old_stderr
+
 import threading
 import time
-import sys
 import os
 import logging
 from datetime import datetime, date, timedelta
