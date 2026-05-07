@@ -87,7 +87,7 @@ CAPTURE_COOLDOWN = 1.0            # Seconds between auto-captures
 
 # Performance tuning
 UI_FRAME_MS = 90                   # Tk redraw interval (~11 FPS reduces CPU load)
-DETECTION_SCALE = 0.18             # Downscale factor for detection work (slightly higher for accuracy)
+DETECTION_SCALE = 0.35             # Downscale factor for detection (higher = more detail, better detection)
 DETECTION_SLEEP = 0.08             # Sleep between detection iterations when capturing
 IDLE_DETECTION_SLEEP = 0.14        # Sleep when just previewing
 DETECTION_INTERVAL = 2             # Run detection every Nth loop iteration
@@ -795,7 +795,7 @@ class FaceRegistrationApp:
         # Enable/disable capture button (only during capture mode)
         if self.capturing:
             try:
-                self.capture_btn.config(state='normal' if face_detected else 'disabled')
+                self.capture_btn.config(state='normal' if self.face_quality_ok else 'disabled')
             except tk.TclError:
                 pass
 
@@ -824,6 +824,9 @@ class FaceRegistrationApp:
         if not self.camera_running or not self.capturing or self.current_raw_frame is None:
             return
         if not self.face_locations:
+            return
+        if not self.face_quality_ok:
+            self._set_status("Face detected, but adjust position/lighting first", WARNING)
             return
 
         self.captured_images.append(self.current_raw_frame.copy())
@@ -1011,7 +1014,8 @@ class FaceRegistrationApp:
 
                 self.root.after(0, lambda: self._show_success(worker))
             else:
-                self.root.after(0, lambda: self._show_error(worker))
+                error_message = recognizer.last_error or "Could not process face data"
+                self.root.after(0, lambda msg=error_message: self._show_error(worker, msg))
 
         threading.Thread(target=train, daemon=True).start()
 
@@ -1105,7 +1109,7 @@ class FaceRegistrationApp:
         self._load_workers()
 
     # ------- ERROR SCREEN -------
-    def _show_error(self, worker):
+    def _show_error(self, worker, error_message=None):
         self._clear_right()
         card = tk.Frame(self.right_panel, bg=CARD,
                         highlightbackground=SEPARATOR, highlightthickness=1)
@@ -1119,7 +1123,8 @@ class FaceRegistrationApp:
         tk.Label(center, text="❌", font=(FONT, 56), bg=CARD).pack(pady=(0, 8))
         tk.Label(center, text="Registration Failed", font=(FONT, 24, 'bold'),
                  fg=DANGER, bg=CARD).pack()
-        tk.Label(center, text=f"Could not process face for {name}",
+        detail_text = error_message or f"Could not process face for {name}"
+        tk.Label(center, text=detail_text,
                  font=(FONT, 12), fg=TEXT_SEC, bg=CARD).pack(pady=(8, 0))
         tk.Label(center,
                  text="Tips:\n"
@@ -1219,12 +1224,27 @@ class FaceRegistrationApp:
                 try:
                     rgb = cv2.cvtColor(frame_copy, cv2.COLOR_BGR2RGB)
                     small = cv2.resize(rgb, (0, 0), fx=scale, fy=scale)
-                    locs = face_recognition.face_locations(small, model='hog', number_of_times_to_upsample=0)
-                    face_locs = [
-                        (int(t / scale), int(r / scale),
-                         int(b / scale), int(l / scale))
-                        for t, r, b, l in locs
-                    ]
+                    locs = face_recognition.face_locations(
+                        small,
+                        model='hog',
+                        number_of_times_to_upsample=DETECTION_UPSAMPLE
+                    )
+
+                    # Fallback pass at full resolution when downscaled detection misses
+                    # and we're actively capturing images.
+                    if not locs and self.capturing:
+                        locs = face_recognition.face_locations(
+                            rgb,
+                            model='hog',
+                            number_of_times_to_upsample=1
+                        )
+                        face_locs = [(int(t), int(r), int(b), int(l)) for t, r, b, l in locs]
+                    else:
+                        face_locs = [
+                            (int(t / scale), int(r / scale),
+                             int(b / scale), int(l / scale))
+                            for t, r, b, l in locs
+                        ]
 
                     if SHOW_LANDMARKS:
                         try:

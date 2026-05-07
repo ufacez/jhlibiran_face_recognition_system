@@ -19,6 +19,8 @@ class FaceRecognizer:
         self.known_encodings: List[np.ndarray] = []
         self.known_metadata: List[Dict[str, Any]] = []
         self.last_update: Optional[float] = None
+        self.last_error: Optional[str] = None
+        self.last_duplicate_match: Optional[Dict[str, Any]] = None
         
         # Performance settings - OPTIMIZED for smooth tracking
         self.scale_factor = 0.35  # Further reduced for faster processing
@@ -28,6 +30,43 @@ class FaceRecognizer:
         self.last_face_locations = []
         self.last_face_names = []
         self.last_face_ids = []  # Track worker IDs
+
+    def _find_duplicate_encoding(self, new_encoding: np.ndarray, worker_id: int) -> Optional[Dict[str, Any]]:
+        """Find an active worker encoding that matches the new face encoding."""
+        if not self.mysql_db or not self.mysql_db.is_connected:
+            return None
+
+        query = """
+            SELECT fe.worker_id, fe.encoding_data, w.first_name, w.last_name, w.worker_code
+            FROM face_encodings fe
+            JOIN workers w ON fe.worker_id = w.worker_id
+            WHERE fe.is_active = 1
+            AND fe.worker_id <> %s
+        """
+        existing = self.mysql_db.fetch_all(query, (worker_id,)) or []
+
+        best_match = None
+        best_distance = float('inf')
+
+        for row in existing:
+            try:
+                candidate = np.array(json.loads(row['encoding_data']))
+                distance = float(np.linalg.norm(candidate - new_encoding))
+            except Exception as exc:
+                logger.warning(f"Skipping invalid encoding for worker {row.get('worker_id')}: {exc}")
+                continue
+
+            if distance <= self.tolerance and distance < best_distance:
+                best_distance = distance
+                best_match = {
+                    'worker_id': row['worker_id'],
+                    'worker_code': row.get('worker_code') or '',
+                    'first_name': row.get('first_name') or '',
+                    'last_name': row.get('last_name') or '',
+                    'distance': distance,
+                }
+
+        return best_match
     
     def load_encodings(self, project_id=None) -> int:
         """Load face encodings from database, optionally filtered by project."""
@@ -262,6 +301,8 @@ class FaceRecognizer:
     
     def train_new_face(self, images: List[np.ndarray], worker_id: int) -> bool:
         """Train new face"""
+        self.last_error = None
+        self.last_duplicate_match = None
         encodings = []
 
         logger.info(f"Training face for worker {worker_id}...")
@@ -283,16 +324,36 @@ class FaceRecognizer:
                 logger.info(f"Processed image {idx+1}")
 
         if len(encodings) < 3:
-            logger.error(f"Need 3+ images (got {len(encodings)})")
+            self.last_error = f"Need at least 3 clear face images (got {len(encodings)})"
+            logger.error(self.last_error)
             return False
 
         # Average encodings
         avg_encoding = np.mean(encodings, axis=0)
+
+        duplicate = self._find_duplicate_encoding(avg_encoding, worker_id)
+        if duplicate:
+            self.last_duplicate_match = duplicate
+            matched_name = f"{duplicate['first_name']} {duplicate['last_name']}".strip() or "another worker"
+            matched_code = duplicate.get('worker_code')
+            code_part = f" ({matched_code})" if matched_code else ""
+            self.last_error = (
+                f"Duplicate face detected. This face already belongs to {matched_name}{code_part}."
+            )
+            logger.warning(
+                "Duplicate registration blocked for worker %s; matched worker %s (distance=%.4f)",
+                worker_id,
+                duplicate['worker_id'],
+                duplicate['distance'],
+            )
+            return False
+
         encoding_json = json.dumps(avg_encoding.tolist())
 
         # Store
         if not self.mysql_db or not self.mysql_db.is_connected:
-            logger.error("MySQL not connected")
+            self.last_error = "Database connection unavailable"
+            logger.error(self.last_error)
             return False
 
         query = """
@@ -307,7 +368,8 @@ class FaceRecognizer:
             self.load_encodings()
             return True
         else:
-            logger.error("Failed to store encoding")
+            self.last_error = "Failed to store face encoding"
+            logger.error(self.last_error)
             return False
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

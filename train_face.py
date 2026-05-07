@@ -467,6 +467,8 @@ def main():
         return 0
     else:
         print("\n❌ Face training failed!")
+        if recognizer.last_error:
+            print(f"Reason: {recognizer.last_error}")
         print("Please try again with:")
         print("  - Better lighting")
         print("  - Clearer face visibility")
@@ -488,6 +490,8 @@ def main():
                     print(f"✓ {worker_name} can now use facial recognition")
                 else:
                     print("\n❌ Training failed again")
+                    if recognizer.last_error:
+                        print(f"Reason: {recognizer.last_error}")
         
         return 1
 
